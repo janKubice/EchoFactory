@@ -163,15 +163,28 @@ vše ostatní. Proto jsou save i žebříčkové „proof" záznamy malé.
   "level_id": "lvl_tutorial_01",
   "level_hash": "sha256:…",
   "placed_nodes": [
-    { "node_id": "node_belt", "position": { "x": 1, "y": 2 }, "config": { "direction": "right" } },
-    { "node_id": "node_math_add", "position": { "x": 4, "y": 2 }, "config": {} }
+    { "node": "node_belt",     "position": { "x": 1, "y": 2 }, "direction": "right" },
+    { "node": "node_math_add", "position": { "x": 4, "y": 2 }, "direction": "right" },
+    { "node": "node_math_mul", "position": { "x": 5, "y": 2 }, "direction": "right", "constant": 3 },
+    { "node": "node_splitter", "position": { "x": 6, "y": 2 }, "output_a": "up", "output_b": "down", "start_with_a": true },
+    { "node": "node_portal",   "position": { "x": 7, "y": 2 }, "direction": "down", "time_offset": 2 }
   ]
 }
 ```
 
+- `node` = `id` definice z registru (`/data/nodes/`); jeho `type` určuje, jaká
+  pole placement čte.
 - `level_hash` = hash definice levelu, proti kterému bylo řešeno (detekce, že se
   level od té doby změnil → save se označí jako „pro jinou verzi").
-- `placed_nodes` je vše, co engine potřebuje k re-kompilaci.
+
+Konfigurace placementu (ploché, dle `type` uzlu):
+
+| Pole | Pro typ | Význam |
+|------|---------|--------|
+| `direction` | belt, math, portal | Směr pásu / výstupu uzlu / výstupu portálu. |
+| `constant` | math (volitelné) | Je-li uvedeno → **unární** uzel: `op(item, constant)` (např. `mul` + `3`). |
+| `output_a`, `output_b`, `start_with_a` | splitter | Dva výstupní směry a počáteční strana. |
+| `time_offset` | portal | Δ tiků: `>0` do minulosti (smyčka), `<0` do budoucnosti. |
 
 ## 5. Lokalizace (`/data/locale/*.json`)
 

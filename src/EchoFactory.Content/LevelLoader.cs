@@ -89,6 +89,7 @@ public static class LevelLoader
             StrictTiming = dto.StrictTiming,
             Generators = generators,
             Sinks = sinks,
+            Par = dto.Par is null ? null : new LevelPar { Ticks = dto.Par.Ticks, Footprint = dto.Par.Footprint },
         };
     }
 

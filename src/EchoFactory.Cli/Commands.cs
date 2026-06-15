@@ -71,8 +71,36 @@ internal static class Commands
 
         Console.WriteLine($"Ticks    : {result.Stats.FinalTick}");
         Console.WriteLine($"Footprint: {result.Stats.Footprint}");
+        if (level.Par is { } par)
+        {
+            int stars = StarRating.Compute(result, par);
+            Console.WriteLine($"Par      : {par.Ticks} ticks / {par.Footprint} nodes");
+            Console.WriteLine($"Stars    : {new string('*', stars)}{new string('.', 3 - stars)} ({stars}/3)");
+        }
+
         return result.Outcome == LevelOutcome.Solved ? 0 : 1;
     });
+
+    public static int List(string dataDir) => Guard(() =>
+    {
+        PrintGroup("nodes", Path.Combine(dataDir, "nodes"));
+        PrintGroup("levels", Path.Combine(dataDir, "levels"));
+        PrintGroup("solutions", Path.Combine(dataDir, "solutions"));
+        return 0;
+    });
+
+    private static void PrintGroup(string label, string dir)
+    {
+        var files = Directory.Exists(dir)
+            ? Directory.EnumerateFiles(dir, "*.json").OrderBy(static f => f, StringComparer.Ordinal).ToList()
+            : [];
+
+        Console.WriteLine($"{label} ({files.Count}):");
+        foreach (string f in files)
+        {
+            Console.WriteLine($"  {Path.GetFileNameWithoutExtension(f)}");
+        }
+    }
 
     public static int Bench(string dataDir) => Guard(() =>
     {

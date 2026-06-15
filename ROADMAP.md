@@ -19,17 +19,19 @@ hromada UI práce.
 | **NEXT** | M5 hratelný slice (HUD, build, playback) | připraveno |
 | **LATER** | M6 editor → M7 Steam → M8 release | navrženo |
 
-> **Implementační stav (M1–M3):** `EchoFactory.Core` má deterministický engine —
-> propose/commit tik; uzly Generator/Belt/Sink/**GenericMath**/**Splitter**/**Portal**;
+> **Implementační stav (M1–M3 + prohloubení):** `EchoFactory.Core` má
+> deterministický engine — propose/commit tik; uzly Generator/Belt/Sink/
+> **GenericMath** (binární i **unární** s konstantou)/**Splitter**/**Portal**;
 > **multi-pass kompilátor** hledající pevný bod injekcí (`F(I*) = I*`) s detekcí
-> oscilace a nekonvergence; paradoxy Collision/Void/Math/**Temporal**.
-> `EchoFactory.Content` načítá a validuje JSON (uzly, levely, řešení) s
-> `schema_version` gate a „fail loud" chybami. `/data/` má 12 uzlů + 3 levely
-> (vč. **časové smyčky**) + 3 referenční řešení. `EchoFactory.Cli` umí
-> `demo`/`validate`/`run`/`verify`/`bench` — `run lvl_loop_01` ukáže item
-> doručený **dřív, než vznikne**. **27 testů** (vč. determinismu, bootstrap smyčky,
-> nestabilní smyčky → TemporalParadox). Celá hra je „hratelná" přes CLI vč. času.
-> `Game`/`Steam` → M4/M7.
+> oscilace a nekonvergence; paradoxy Collision/Void/Math/**Temporal**; **par +
+> hvězdičkové hodnocení**. `EchoFactory.Content` načítá a validuje JSON s
+> `schema_version` gate a „fail loud" chybami. `/data/` má 12 uzlů + **6 levelů**
+> (kampaň: line, adder, splitter, unární ×, dvoustupňová linka, **časová smyčka**)
+> + 6 referenčních řešení. `EchoFactory.Cli` umí
+> `demo`/`list`/`validate`/`run`/`verify`(★)/`bench` — `run lvl_loop_01` ukáže item
+> doručený **dřív, než vznikne**. **30 testů** (determinismus, bootstrap i
+> nestabilní smyčky, unární math, hvězdičky). Celá hra je „hratelná" přes CLI vč.
+> času. `Game`/`Steam` → M4/M7.
 
 ## Klíčové mezníky (milestones napříč fázemi)
 

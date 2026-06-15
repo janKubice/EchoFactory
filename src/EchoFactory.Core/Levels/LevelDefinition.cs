@@ -1,5 +1,13 @@
 namespace EchoFactory.Core;
 
+/// <summary>Reference targets for the 3-star rating / leaderboard expectations.</summary>
+public sealed class LevelPar
+{
+    public required int Ticks { get; init; }
+
+    public required int Footprint { get; init; }
+}
+
 /// <summary>One scheduled spawn from a generator.</summary>
 public readonly record struct SpawnEntry(int Tick, int Value);
 
@@ -48,4 +56,7 @@ public sealed class LevelDefinition
     public IReadOnlyList<GeneratorSpec> Generators { get; init; } = [];
 
     public IReadOnlyList<SinkSpec> Sinks { get; init; } = [];
+
+    /// <summary>Optional par targets for star rating.</summary>
+    public LevelPar? Par { get; init; }
 }

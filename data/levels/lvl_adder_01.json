@@ -4,6 +4,7 @@
   "name": "Sum It Up",
   "grid": { "width": 5, "height": 3 },
   "max_ticks": 12,
+  "par": { "ticks": 5, "footprint": 5 },
   "fixed_nodes": [
     {
       "id": "genA",

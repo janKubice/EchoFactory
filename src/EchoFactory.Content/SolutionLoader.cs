@@ -62,6 +62,7 @@ public static class SolutionLoader
                         Operation = def.Operation
                             ?? throw new ContentException($"{where}: math definition has no operation"),
                         Output = Tokens.Dir(pn.Direction, where),
+                        Constant = pn.Constant,
                     }));
                     break;
 

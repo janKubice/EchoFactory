@@ -36,6 +36,13 @@ internal sealed class LevelDto
     public int MaxTemporalPasses { get; set; } = 5;
     public bool StrictTiming { get; set; }
     public List<FixedNodeDto>? FixedNodes { get; set; }
+    public ParDto? Par { get; set; }
+}
+
+internal sealed class ParDto
+{
+    public int Ticks { get; set; }
+    public int Footprint { get; set; }
 }
 
 internal sealed class GridDto
@@ -83,4 +90,5 @@ internal sealed class PlacedNodeDto
     public string? OutputB { get; set; }
     public bool StartWithA { get; set; } = true;
     public int? TimeOffset { get; set; }
+    public int? Constant { get; set; }
 }

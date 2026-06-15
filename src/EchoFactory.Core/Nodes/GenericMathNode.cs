@@ -37,7 +37,7 @@ public sealed class GenericMathNode : INode
         }
 
         int a = _buffer[0];
-        int b = _buffer[1];
+        int b = _config.Arity == 1 ? _config.Constant!.Value : _buffer[1];
 
         if (_config.Operation is MathOperation.Div or MathOperation.Mod && b == 0)
         {

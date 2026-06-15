@@ -12,7 +12,7 @@ public enum MathOperation
     Max,
 }
 
-/// <summary>Configuration for a math node. All M2 operations are binary (arity 2).</summary>
+/// <summary>Configuration for a math node. Binary by default; unary when a constant operand is set.</summary>
 public sealed class MathConfig
 {
     public required MathOperation Operation { get; init; }
@@ -20,8 +20,11 @@ public sealed class MathConfig
     /// <summary>Direction the computed result is emitted into.</summary>
     public required Direction Output { get; init; }
 
-    /// <summary>Number of operands consumed per result. Binary for the M2 operation set.</summary>
-    public int Arity => 2;
+    /// <summary>If set, the node is unary: it computes <c>op(item, Constant)</c> on each arriving item.</summary>
+    public int? Constant { get; init; }
+
+    /// <summary>Number of operands consumed per result: 1 when a constant is configured, else 2.</summary>
+    public int Arity => Constant.HasValue ? 1 : 2;
 }
 
 /// <summary>Configuration for a splitter: alternates incoming items between two outputs.</summary>
