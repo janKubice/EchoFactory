@@ -14,9 +14,16 @@ hromada UI práce.
 
 | | Milníky | Stav |
 |---|---|---|
-| **NOW** | M0 setup → M1 single-pass engine | 🔜 začínáme |
-| **NEXT** | M2 data pipeline → M3 časové smyčky | připraveno |
+| **DONE** | M0 setup · M1 single-pass engine | ✅ hotovo (9 testů zelených, CLI demo běží) |
+| **NOW** | M2 data pipeline (JSON → engine) | 🔜 další |
+| **NEXT** | M3 časové smyčky (USP) | připraveno |
 | **LATER** | M4–M5 hratelný slice → M6 editor → M7 Steam → M8 release | navrženo |
+
+> **Implementační stav (M1):** `EchoFactory.Core` má deterministický single-pass
+> engine — propose/commit tik, uzly Generator/Belt/Sink, deterministická
+> `ItemId`/`NodeId`, paradoxy Collision/Void, vyhodnocení cílů a metriky
+> (footprint, final tick). Pokryto 9 testy (vč. determinismu). `EchoFactory.Cli
+> demo` vykreslí časovou osu jako ASCII. Projekty `Game`/`Steam` přijdou v M4/M7.
 
 ## Klíčové mezníky (milestones napříč fázemi)
 

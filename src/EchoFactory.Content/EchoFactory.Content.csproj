@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- EchoFactory.Content: JSON loading, validation, registries.
+       Depends only on Core. System.Text.Json is in-box for net8.0. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EchoFactory.Core\EchoFactory.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- EchoFactory.Core: the headless deterministic engine.
+       ZERO dependencies on MonoGame / Steamworks / IO / graphics (ADR-0001).
+       Strict: warnings are errors here. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

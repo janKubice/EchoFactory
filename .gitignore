@@ -1,0 +1,45 @@
+# .NET build output
+bin/
+obj/
+out/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# Test & coverage
+[Tt]est[Rr]esult*/
+coverage/
+*.coverage
+*.trx
+
+# NuGet
+*.nupkg
+.nuget/
+packages/
+
+# MonoGame content pipeline (added at M4)
+*.mgcb.pdb
+Content/bin/
+Content/obj/
+
+# Local SDK install (this environment installs .NET into ~/.dotnet)
+.dotnet/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local mods / scratch
+/mods/
+*.local.json

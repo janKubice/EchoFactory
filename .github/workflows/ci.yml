@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  build-test:
+    name: build & test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Cross-platform run also guards determinism (docs/testing.md §4):
+        # the same build must hash identically on Linux and Windows.
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore EchoFactory.sln
+
+      - name: Build (warnings are errors in Core/Content)
+        run: dotnet build EchoFactory.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test EchoFactory.sln --configuration Release --no-build --verbosity normal
+
+      # Added in M2 with the JSON content pipeline:
+      # - name: Validate content
+      #   run: dotnet run --project src/EchoFactory.Cli -- validate ./data
