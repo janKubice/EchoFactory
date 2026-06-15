@@ -61,6 +61,7 @@ Tři pilíře (detail v [`docs/design.md`](./docs/design.md)):
 | [`docs/simulation-engine.md`](./docs/simulation-engine.md) | Multi-pass kompilátor, časový model, paradoxy |
 | [`docs/content-format.md`](./docs/content-format.md) | JSON schémata (node, level, save), modding, verzování |
 | [`docs/frontend.md`](./docs/frontend.md) | MonoGame, scény, vykreslování, vizuální styl |
+| [`docs/ui-ux.md`](./docs/ui-ux.md) | Kompletní herní shell — menu, nastavení, HUD, save, onboarding |
 | [`docs/meta-services.md`](./docs/meta-services.md) | Steam, žebříčky, Workshop, anti-cheat |
 | [`docs/testing.md`](./docs/testing.md) | Strategie testů, determinismus, CI |
 | [`docs/glossary.md`](./docs/glossary.md) | Sdílený slovník pojmů (CZ ↔ EN) |

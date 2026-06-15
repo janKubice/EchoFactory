@@ -146,19 +146,23 @@ M4+ (frontend) může *začít* paralelně po M2 (umí renderovat statický
 
 ---
 
-## M4 — Frontend foundation (MonoGame) · `M`
-**Cíl:** vykreslit `GridState` a mít kostru scén. (Může začít paralelně po M2.)
+## M4 — Frontend foundation + UI shell (MonoGame) · `L`
+**Cíl:** vykreslit `GridState`, mít kostru scén a **základ herního UI**. (Může
+začít paralelně po M2.)
 
 **Deliverables**
 - MonoGame projekt, `IRenderer` + `MonoGameRenderer` —
   [frontend.md](./docs/frontend.md), [ADR-0002](./docs/adr/0002-monogame-over-raylib.md).
-- `SceneManager` + `BootScene`, `MainMenuScene`.
+- **Vlastní lehký UI toolkit** (tlačítka, panely, slidery, taby, dialogy, toasty,
+  fokus) — [ADR-0005](./docs/adr/0005-ui-toolkit.md), [ui-ux.md](./docs/ui-ux.md).
+- `SceneManager` + overlay stack; `BootScene`, `MainMenuScene`, **`SettingsScene`**.
+- **Nastavení + persistence** (`settings.json`): obraz/zvuk/ovládání/jazyk/přístupnost.
 - Render statického `GridState` ve vektorovém stylu (mřížka, uzly, itemy).
 - `IPlatformServices` + `NullPlatformServices` (Steam zatím no-op).
 
 **Exit kritéria**
-- Hra se spustí, načte registry, ukáže menu a vykreslí jeden zkompilovaný
-  `GridState` v cílovém vizuálním stylu.
+- Hra se spustí, ukáže **funkční menu a nastavení** (uložení/načtení), a vykreslí
+  zkompilovaný `GridState` v cílovém vizuálním stylu.
 
 **Rizika:** podcenění vektorového renderu (linky, antialiasing). *Mitigace:*
 brzká stylová „spike".
@@ -170,14 +174,18 @@ brzká stylová „spike".
 
 **Deliverables**
 - `GameplayScene`: Build → Compile (na pozadí) → Playback.
+- **Herní HUD** ([ui-ux.md §5](./docs/ui-ux.md)): paleta uzlů, počítadla inventáře/
+  footprint/tick, Compile tlačítko, panel paradoxu, výsledková karta (★).
 - **Build mode**: paleta z `inventory`, umisťování, rotace, **undo/redo**
   (command pattern).
 - **Playback**: play/pause/step/reset, **timeline scrubbing**, rychlosti.
+- **`PauseOverlay`** (ESC) + potvrzovací dialogy.
 - **Tweening** itemů + `VisualEvent` efekty (spawn, merge, math, portal, paradox).
-- Čitelné zobrazení paradoxů (zvýraznění buňky/tiku).
+- **Save řešení + osobní rekordy** (auto-save, `schema_version`, `level_hash`).
 
 **Exit kritéria** → 🎮 **vertical slice**
-- Hráč myší postaví, zkompiluje a přehraje tutorial level vč. levelu s portálem.
+- Hráč myší postaví, zkompiluje a přehraje tutorial level vč. levelu s portálem,
+  s plným HUD a pauzou; řešení se uloží a načte.
 - Paradox se zobrazí srozumitelně, ne jako pád.
 
 **Rizika:** UX kompilace na pozadí (nesmí škubat). *Mitigace:* background thread,
@@ -194,7 +202,8 @@ progress, immutabilní `SimulationResult`.
 - Editor ověří **řešitelnost** (autor dodá referenční řešení; spustí `validate`).
 - Sada levelů: tutorial + kampaň po obtížnostních pásmech (vč. temporálních).
 - **Lokalizace** (`/data/locale`, cs + en), externalizace všech textů.
-- Nápověda/onboarding pro časové smyčky (nejtěžší koncept pro hráče).
+- **Onboarding + Codex** ([ui-ux.md §8](./docs/ui-ux.md)): tutoriálové levely,
+  kontextové nápovědy, encyklopedie uzlů generovaná z JSON, vizualizace smyček.
 
 **Exit kritéria**
 - Level vytvořený v editoru jde uložit, znovu načíst a vyřešit.
@@ -232,8 +241,10 @@ rozhraním, manuální testy na Steamu.
 
 **Deliverables**
 - **Přístupnost**: colorblind-safe paleta, tvary+ikony (ne jen barva),
-  škálování písma — [frontend.md → §5](./docs/frontend.md).
+  škálování písma, reduced motion, high-contrast — [ui-ux.md §9/12](./docs/ui-ux.md).
 - **Audio** (Mini Metro styl), nastavení, klávesové mapování.
+- **`ProfileScene`** (statistiky, rekordy) + **`CreditsScene`** + toast notifikace.
+- **Steam Cloud** sync profilu/savů/nastavení; ruční sloty.
 - **Achievementy** (datově, z `SimulationResult`).
 - **Server-side re-validace** žebříčků (posílení anti-cheatu) —
   [meta-services.md → §2](./docs/meta-services.md).

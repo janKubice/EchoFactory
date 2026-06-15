@@ -46,10 +46,20 @@ public interface IScene
 | Scéna | Obsah | Pozn. |
 |-------|-------|-------|
 | `BootScene` | Init `IPlatformServices`, načtení JSON registrů + assetů, loading bar. | jednorázově |
-| `MainMenuScene` | Hrát / Editor / Workshop / Nastavení. | — |
+| `MainMenuScene` | Pokračovat / Hrát / Editor / Workshop / Nastavení / Profil / Titulky. | — |
 | `LevelSelectScene` | Mapa/strom levelů, náhled žebříčků pro vybraný level. | — |
-| `GameplayScene` | Build / Compile / Playback (sub-stavy). | jádro |
+| `GameplayScene` | Build / Compile / Playback (sub-stavy) + HUD. | jádro |
 | `LevelEditorScene` | Tvorba levelů, omezení inventáře, export JSON. | M6 |
+| `SettingsScene` | Obraz / Zvuk / Ovládání / Hra / Jazyk / Přístupnost (overlay). | M4 |
+| `ProfileScene` | Postup, statistiky, osobní rekordy. | M8 |
+| `WorkshopScene` | Procházení/stahování komunitních balíčků. | M7 |
+| `CreditsScene` | Titulky. | M8 |
+
+**Overlaye** (nad aktivní scénou ve stacku): `PauseOverlay`, dialogy, toasty.
+
+> Kompletní popis menu, nastavení, HUD, save systému, onboardingu a přístupnosti
+> má vlastní dokument: **[ui-ux.md](./ui-ux.md)**. Volba UI toolkitu:
+> [ADR-0005](./adr/0005-ui-toolkit.md).
 
 ## 3. GameplayScene — sub-stavy
 
