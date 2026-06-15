@@ -12,9 +12,10 @@
 
 ## Stav projektu
 
-🚧 **Fáze 0 — Dokumentace a návrh.** Zatím neexistuje žádný kód, pouze tato
-dokumentace a roadmap. Implementace začíná milníkem **M1** (viz
-[`ROADMAP.md`](./ROADMAP.md)).
+✅ **Engine hotový (M0–M3) + hratelný frontend.** Deterministické jádro vč.
+**časových smyček**, JSON data-driven obsah (12 uzlů, 6 levelů kampaně),
+headless CLI a **MonoGame frontend** (menu → výběr levelu → build/compile/
+playback). **30 testů** zelených. Detaily a další kroky v [`ROADMAP.md`](./ROADMAP.md).
 
 ## Co to bude
 
@@ -75,18 +76,34 @@ Tři pilíře (detail v [`docs/design.md`](./docs/design.md)):
 - **Serializace:** `System.Text.Json` (source-generated, AOT-friendly).
 - **Integrace:** Steamworks.NET (žebříčky + Workshop), izolovaná za rozhraním.
 
-## Rychlý start (až bude kód)
+## Rychlý start
+
+Potřebuješ **.NET 8 SDK**. (V Claude Code na webu ho doinstaluje SessionStart hook.)
 
 ```bash
 # Backend testy (žádné GUI, běží i v CI)
 dotnet test
 
-# Headless validace všech levelů a node definic
-dotnet run --project src/EchoFactory.Cli -- validate ./data
+# Headless: validace obsahu, výpis, spuštění levelu jako ASCII trace
+dotnet run --project src/EchoFactory.Cli -- validate
+dotnet run --project src/EchoFactory.Cli -- list
+dotnet run --project src/EchoFactory.Cli -- run lvl_loop_01 sol_loop_01
 
-# Spuštění hry
+# Spuštění HRY (potřebuje desktop s OpenGL — ne headless server)
 dotnet run --project src/EchoFactory.Game
 ```
+
+### Ovládání hry
+
+**Build mode:** `1–5` výběr nástroje (pás / +add / ×mul / splitter / portál) ·
+levým tlačítkem (drag) položit · pravým smazat · `R` otočit · `L` načíst
+referenční řešení · `X` smazat vše · `Space`/`COMPILE` spustit simulaci · `Esc` zpět.
+
+**Playback:** `Space` play/pauza · `←/→` krok · tažením po časové ose scrubbing ·
+`B` zpět do editace · `Esc` zpět. Zobrazí se výsledek (Solved/Paradox) a hvězdičky.
+
+> Tip: na novém levelu zmáčkni `L` (načte referenční řešení) a `Space` — uvidíš
+> hru hned v akci, vč. `lvl_loop_01`, kde item dorazí do cíle *dřív, než vznikne*.
 
 ## Licence
 

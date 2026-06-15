@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- MonoGame.Framework.DesktopGL ships SDL natives per-RID; analyzers off as errors here. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EchoFactory.Core\EchoFactory.Core.csproj" />
+    <ProjectReference Include="..\EchoFactory.Content\EchoFactory.Content.csproj" />
+  </ItemGroup>
+
+  <!-- Copy the JSON content next to the executable so the game finds it after publish too. -->
+  <ItemGroup>
+    <None Include="..\..\data\**\*.json" Link="data\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

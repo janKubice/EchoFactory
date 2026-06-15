@@ -14,10 +14,19 @@ hromada UI práce.
 
 | | Milníky | Stav |
 |---|---|---|
-| **DONE** | M0 · M1 · M2 · **M3 časové smyčky** → 🧪 engine-complete | ✅ 27 testů, `validate` zelené |
-| **NOW** | M4 frontend foundation + UI shell | 🔜 další |
-| **NEXT** | M5 hratelný slice (HUD, build, playback) | připraveno |
-| **LATER** | M6 editor → M7 Steam → M8 release | navrženo |
+| **DONE** | M0–M3 engine + prohloubení · **hratelný MonoGame frontend** 🎮 | ✅ 30 testů, builduje + hraje se lokálně |
+| **NOW** | Doladit frontend (nastavení, konfigurace uzlů v UI, audio) + víc obsahu | 🔜 |
+| **NEXT** | M6 editor levelů · M7 Steam (žebříčky, Workshop) | navrženo |
+| **LATER** | M8 release (přístupnost, polish) | navrženo |
+
+> **Frontend (hratelný slice):** `EchoFactory.Game` (MonoGame DesktopGL, vektorové
+> vykreslování bez externích assetů — vlastní bitmapový font + primitiva). Scény
+> MainMenu → LevelSelect → Gameplay (build mode: umisťování pásů/math/splitter/
+> portálů myší, rotace, načtení referenčního řešení; Compile; Playback s časovou
+> osou, scrubbingem a tweeningem itemů; výsledek + hvězdičky). Spuštění:
+> `dotnet run --project src/EchoFactory.Game` (vyžaduje desktop s OpenGL). Vizuální
+> ladění a chybějící kusy (SettingsScene, plná konfigurace uzlů, undo/redo, audio)
+> jsou „NOW".
 
 > **Implementační stav (M1–M3 + prohloubení):** `EchoFactory.Core` má
 > deterministický engine — propose/commit tik; uzly Generator/Belt/Sink/
@@ -274,6 +283,19 @@ rozhraním, manuální testy na Steamu.
 | Scope creep (editor+workshop+žebříčky) | nedodání | striktní anti-scope, fázování, slice v M5 | [design.md → §8](./docs/design.md) |
 | Křivka učení (čas) | hráč to nepochopí | onboarding, debug overlay, postupné mechaniky | [design.md](./docs/design.md) |
 | Steam specifika | zdržení v M7 | izolace za `IPlatformServices` | [meta-services.md](./docs/meta-services.md) |
+
+# Backlog (zaparkované nápady)
+
+Prohloubení enginu/obsahu odložené ve prospěch frontendu — vrátit se k nim:
+
+- **Strict-timing cíle** — sink vyžaduje přesné tiky doručení (flag `strict_timing`
+  je v modelu, zatím se kontroluje jen pořadí). Vyžaduje receipts s tiky.
+- **Filter/Gate uzel** — propustí item jen při splnění podmínky (eq/lt/gt vs.
+  konstanta); jinak ho zahodí. Otevírá logické hádanky.
+- **Inventory enforcement** — `validate`/editor ověří, že řešení dodržuje
+  `inventory` (whitelist/blacklist + limity počtů) z levelu.
+- **Víc kampaňových levelů** + těžší temporální hádanky (bootstrap, víc portálů).
+- **Server-side verify** — re-simulace řešení jako serverless krok (anti-cheat).
 
 # Otevřené otázky (k rozhodnutí)
 
