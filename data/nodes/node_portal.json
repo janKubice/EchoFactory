@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "node_portal",
+  "name": "Time Portal",
+  "type": "portal",
+  "category": "Temporal",
+  "tick_cost": 1,
+  "visual": { "shape": "diamond", "color_hex": "#E84393", "icon": "@" }
+}

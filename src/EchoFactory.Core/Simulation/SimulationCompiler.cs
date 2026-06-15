@@ -1,8 +1,9 @@
 namespace EchoFactory.Core;
 
 /// <summary>
-/// Compiles a level + build into a full timeline. M1 is a single forward pass (no temporal
-/// portals yet — the multi-pass fixed-point loop arrives in M3, simulation-engine.md §3).
+/// Compiles a level + build into a full timeline. Without portals this is a single forward pass.
+/// With time portals it iterates passes to a fixed point of the injection set (F(I*) = I*),
+/// detecting oscillation and non-convergence as TemporalParadox (simulation-engine.md §3).
 /// </summary>
 public static class SimulationCompiler
 {
@@ -11,20 +12,87 @@ public static class SimulationCompiler
         ArgumentNullException.ThrowIfNull(level);
         ArgumentNullException.ThrowIfNull(build);
 
+        int maxPasses = level.MaxTemporalPasses > 0 ? level.MaxTemporalPasses : 5;
+        int footprint = build.Footprint;
+
+        InjectionSet injections = InjectionSet.Empty;
+        var seenHashes = new HashSet<ulong>();
+        PassResult pass = default!;
+
+        for (int passIndex = 0; passIndex <= maxPasses; passIndex++)
+        {
+            pass = RunSinglePass(level, build, injections);
+
+            if (pass.Paradox is not null)
+            {
+                return SimulationResult.Paradox(
+                    pass.Paradox, pass.States, new SimulationStats(pass.Paradox.Tick, footprint, passIndex + 1));
+            }
+
+            if (pass.Injections.SetEquals(injections))
+            {
+                // Fixed point: this pass is self-consistent (its assumed injections == produced).
+                LevelOutcome outcome = EvaluateOutcome(level, pass.Receipts);
+                int finalTick = outcome == LevelOutcome.Solved ? pass.LastDeliveryTick : level.MaxTicks;
+                return SimulationResult.Completed(
+                    outcome, pass.States, new SimulationStats(finalTick, footprint, passIndex + 1));
+            }
+
+            if (!seenHashes.Add(pass.Injections.Hash()))
+            {
+                return SimulationResult.Paradox(
+                    ParadoxError.Temporal("oscillating (unstable) loop", passIndex + 1),
+                    pass.States, new SimulationStats(level.MaxTicks, footprint, passIndex + 1));
+            }
+
+            injections = pass.Injections;
+        }
+
+        return SimulationResult.Paradox(
+            ParadoxError.Temporal("loop did not converge", maxPasses + 1),
+            pass.States, new SimulationStats(level.MaxTicks, footprint, maxPasses + 1));
+    }
+
+    private static PassResult RunSinglePass(LevelDefinition level, Build build, InjectionSet injections)
+    {
+        // Fresh nodes each pass => clean per-pass state (splitter toggle, math buffer).
         var nodes = NodeFactory.Create(level, build);
 
         var states = new List<GridState>(level.MaxTicks + 1) { GridState.Empty(0) };
-
-        // Sink receipts: sink id -> values received, in arrival order.
         var receipts = new Dictionary<NodeId, List<int>>();
-        int lastDeliveryTick = 0;
+        var emissions = new List<PortalEmission>();
+        int lastDelivery = 0;
+
+        var byTick = new Dictionary<int, List<Injection>>();
+        foreach (var inj in injections.Items)
+        {
+            // Off-timeline injections (before the start / past the end) simply never apply.
+            if (inj.ApplyTick < 0 || inj.ApplyTick >= level.MaxTicks)
+            {
+                continue;
+            }
+
+            if (!byTick.TryGetValue(inj.ApplyTick, out var list))
+            {
+                byTick[inj.ApplyTick] = list = [];
+            }
+
+            list.Add(inj);
+        }
 
         for (int t = 0; t < level.MaxTicks; t++)
         {
             var ctx = new SimContext(t, level.Grid);
             var builder = new GridStateBuilder(states[t], level.Grid);
 
-            // PROPOSE — node order is irrelevant (propose/commit model).
+            if (byTick.TryGetValue(t, out var injectionsHere))
+            {
+                foreach (var inj in injectionsHere)
+                {
+                    builder.Inject(inj.ExitCell, new Item(inj.Id, inj.Value));
+                }
+            }
+
             foreach (var node in nodes)
             {
                 node.Evaluate(in ctx, states[t], builder);
@@ -38,22 +106,35 @@ public static class SimulationCompiler
                 }
 
                 list.Add(consumed.Item.Value);
-                lastDeliveryTick = consumed.Tick;
+                lastDelivery = consumed.Tick;
             }
 
-            // COMMIT.
+            emissions.AddRange(builder.Emissions);
+
             if (!builder.TryCommit(out var next, out var paradox))
             {
-                var stats = new SimulationStats(t, build.Footprint, Passes: 1);
-                return SimulationResult.Paradox(paradox!, states, stats);
+                return new PassResult
+                {
+                    States = states,
+                    Injections = InjectionSet.Empty,
+                    Receipts = receipts,
+                    Paradox = paradox,
+                };
             }
 
             states.Add(next);
         }
 
-        var outcome = EvaluateOutcome(level, receipts);
-        int finalTick = outcome == LevelOutcome.Solved ? lastDeliveryTick : level.MaxTicks;
-        return SimulationResult.Completed(outcome, states, new SimulationStats(finalTick, build.Footprint, Passes: 1));
+        var produced = new InjectionSet(
+            emissions.Select(e => new Injection(e.ExitCell, e.ApplyTick, e.Item.Value, e.Item.Id)));
+
+        return new PassResult
+        {
+            States = states,
+            Injections = produced,
+            Receipts = receipts,
+            LastDeliveryTick = lastDelivery,
+        };
     }
 
     private static LevelOutcome EvaluateOutcome(LevelDefinition level, Dictionary<NodeId, List<int>> receipts)
@@ -70,6 +151,19 @@ public static class SimulationCompiler
         }
 
         return LevelOutcome.Solved;
+    }
+
+    private sealed class PassResult
+    {
+        public required List<GridState> States { get; init; }
+
+        public required InjectionSet Injections { get; init; }
+
+        public required Dictionary<NodeId, List<int>> Receipts { get; init; }
+
+        public int LastDeliveryTick { get; init; }
+
+        public ParadoxError? Paradox { get; init; }
     }
 }
 
@@ -108,6 +202,8 @@ internal static class NodeFactory
                 ?? throw new ArgumentException($"Math placement at {p.Position} has no MathConfig")),
             NodeKind.Splitter => new SplitterNode(id, p.Position, p.Splitter
                 ?? throw new ArgumentException($"Splitter placement at {p.Position} has no SplitterConfig")),
+            NodeKind.Portal => new PortalNode(id, p.Position, p.Portal
+                ?? throw new ArgumentException($"Portal placement at {p.Position} has no PortalConfig")),
             _ => throw new ArgumentException($"Unsupported placed node kind: {p.Kind}"),
         };
     }

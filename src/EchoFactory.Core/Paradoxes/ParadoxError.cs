@@ -64,5 +64,12 @@ public sealed class ParadoxError
         [],
         FormattableString.Invariant($"Math paradox at {cell} on tick {tick}: {detail}"));
 
+    public static ParadoxError Temporal(string reason, int passes) => new(
+        ParadoxKind.Temporal,
+        tick: -1,
+        cell: default,
+        [],
+        FormattableString.Invariant($"Temporal paradox after {passes} pass(es): {reason}"));
+
     public override string ToString() => Message;
 }

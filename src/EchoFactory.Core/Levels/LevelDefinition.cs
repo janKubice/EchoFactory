@@ -39,6 +39,9 @@ public sealed class LevelDefinition
 
     public required int MaxTicks { get; init; }
 
+    /// <summary>Cap on temporal fixed-point iterations before declaring a TemporalParadox.</summary>
+    public int MaxTemporalPasses { get; init; } = 5;
+
     /// <summary>If true, sinks will require exact arrival ticks (reserved for a later milestone).</summary>
     public bool StrictTiming { get; init; }
 

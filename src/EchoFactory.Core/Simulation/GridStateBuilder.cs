@@ -6,6 +6,9 @@ internal readonly record struct Proposal(GridPoint Target, Item Item, NodeId Sou
 /// <summary>Record of an item consumed by a sink during a tick.</summary>
 public readonly record struct Consumed(NodeId Sink, Item Item, int Tick);
 
+/// <summary>A time-shifted emission recorded by a portal: which item appears where, and when.</summary>
+public readonly record struct PortalEmission(GridPoint ExitCell, int ApplyTick, Item Item);
+
 /// <summary>
 /// Accumulates node proposals during the PROPOSE phase, then deterministically resolves
 /// them into the next <see cref="GridState"/> during COMMIT (simulation-engine.md §2).
@@ -19,6 +22,7 @@ public sealed class GridStateBuilder
     private readonly List<Proposal> _proposals = [];
     private readonly HashSet<GridPoint> _serviced = [];
     private readonly List<Consumed> _consumed = [];
+    private readonly List<PortalEmission> _emissions = [];
     private readonly List<VisualEvent> _events = [];
     private readonly List<ParadoxError> _reported = [];
 
@@ -31,6 +35,9 @@ public sealed class GridStateBuilder
 
     /// <summary>Items consumed by sinks this tick.</summary>
     public IReadOnlyList<Consumed> Consumed => _consumed;
+
+    /// <summary>Portal emissions recorded this tick (fed into the next compiler pass).</summary>
+    public IReadOnlyList<PortalEmission> Emissions => _emissions;
 
     /// <summary>Move an existing item one step. Services the source cell.</summary>
     public void Move(GridPoint from, GridPoint to, Item item, NodeId source, int priority = 0)
@@ -64,6 +71,21 @@ public sealed class GridStateBuilder
 
     /// <summary>Report a paradox detected during the PROPOSE phase (e.g. math errors).</summary>
     public void Report(ParadoxError paradox) => _reported.Add(paradox);
+
+    /// <summary>Absorb an item into a time portal and record its time-shifted emission. Services the cell.</summary>
+    public void PortalAbsorb(GridPoint portalCell, GridPoint exitCell, int applyTick, Item emitted)
+    {
+        _serviced.Add(portalCell);
+        _emissions.Add(new PortalEmission(exitCell, applyTick, emitted));
+        _events.Add(new VisualEvent(VisualEventKind.PortalIn, portalCell, exitCell, emitted));
+    }
+
+    /// <summary>Inject a time-shifted item onto a cell (portal output from a previous pass).</summary>
+    public void Inject(GridPoint cell, Item item)
+    {
+        _proposals.Add(new Proposal(cell, item, default, Priority: 0));
+        _events.Add(new VisualEvent(VisualEventKind.PortalOut, cell, cell, item));
+    }
 
     /// <summary>
     /// Resolve proposals into the next state, or report the first paradox. Resolution order

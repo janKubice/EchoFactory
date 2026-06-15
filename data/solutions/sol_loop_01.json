@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "level_id": "lvl_loop_01",
+  "placed_nodes": [
+    { "node": "node_belt", "position": { "x": 1, "y": 1 }, "direction": "right" },
+    { "node": "node_belt", "position": { "x": 2, "y": 1 }, "direction": "right" },
+    { "node": "node_portal", "position": { "x": 3, "y": 1 }, "direction": "down", "time_offset": 2 },
+    { "node": "node_belt", "position": { "x": 3, "y": 2 }, "direction": "right" },
+    { "node": "node_belt", "position": { "x": 4, "y": 2 }, "direction": "right" }
+  ]
+}

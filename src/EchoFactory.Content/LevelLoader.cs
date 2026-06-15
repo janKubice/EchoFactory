@@ -85,6 +85,7 @@ public static class LevelLoader
             Id = id,
             Grid = new GridSize(dto.Grid.Width, dto.Grid.Height),
             MaxTicks = dto.MaxTicks,
+            MaxTemporalPasses = dto.MaxTemporalPasses,
             StrictTiming = dto.StrictTiming,
             Generators = generators,
             Sinks = sinks,

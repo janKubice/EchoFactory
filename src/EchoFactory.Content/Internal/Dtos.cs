@@ -82,4 +82,5 @@ internal sealed class PlacedNodeDto
     public string? OutputA { get; set; }
     public string? OutputB { get; set; }
     public bool StartWithA { get; set; } = true;
+    public int? TimeOffset { get; set; }
 }

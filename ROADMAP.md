@@ -14,19 +14,22 @@ hromada UI práce.
 
 | | Milníky | Stav |
 |---|---|---|
-| **DONE** | M0 setup · M1 engine · M2 data pipeline | ✅ hotovo (23 testů, `validate ./data` zelené) |
-| **NOW** | M3 časové smyčky (USP) | 🔜 další |
-| **NEXT** | M4–M5 hratelný slice (frontend + UI shell) | připraveno |
+| **DONE** | M0 · M1 · M2 · **M3 časové smyčky** → 🧪 engine-complete | ✅ 27 testů, `validate` zelené |
+| **NOW** | M4 frontend foundation + UI shell | 🔜 další |
+| **NEXT** | M5 hratelný slice (HUD, build, playback) | připraveno |
 | **LATER** | M6 editor → M7 Steam → M8 release | navrženo |
 
-> **Implementační stav (M1+M2):** `EchoFactory.Core` má deterministický single-pass
-> engine (propose/commit tik; uzly Generator/Belt/Sink/**GenericMath**/**Splitter**;
-> deterministická `ItemId`/`NodeId`; paradoxy Collision/Void/**Math**; metriky).
+> **Implementační stav (M1–M3):** `EchoFactory.Core` má deterministický engine —
+> propose/commit tik; uzly Generator/Belt/Sink/**GenericMath**/**Splitter**/**Portal**;
+> **multi-pass kompilátor** hledající pevný bod injekcí (`F(I*) = I*`) s detekcí
+> oscilace a nekonvergence; paradoxy Collision/Void/Math/**Temporal**.
 > `EchoFactory.Content` načítá a validuje JSON (uzly, levely, řešení) s
-> `schema_version` gate a „fail loud" chybami; node registry instancuje uzly z JSON.
-> `/data/` má 11 uzlů + 2 levely + 2 referenční řešení. `EchoFactory.Cli` umí
-> `demo`/`validate`/`run`/`verify`/`bench`. **23 testů** (Core + Content), vč.
-> determinismu a math levelu vyřešeného z čistě JSON uzlů. `Game`/`Steam` → M4/M7.
+> `schema_version` gate a „fail loud" chybami. `/data/` má 12 uzlů + 3 levely
+> (vč. **časové smyčky**) + 3 referenční řešení. `EchoFactory.Cli` umí
+> `demo`/`validate`/`run`/`verify`/`bench` — `run lvl_loop_01` ukáže item
+> doručený **dřív, než vznikne**. **27 testů** (vč. determinismu, bootstrap smyčky,
+> nestabilní smyčky → TemporalParadox). Celá hra je „hratelná" přes CLI vč. času.
+> `Game`/`Steam` → M4/M7.
 
 ## Klíčové mezníky (milestones napříč fázemi)
 

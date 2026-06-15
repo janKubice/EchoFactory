@@ -19,6 +19,9 @@ public sealed class PlacedNode
     /// <summary>Set when Kind == Splitter.</summary>
     public SplitterConfig? Splitter { get; init; }
 
+    /// <summary>Set when Kind == Portal.</summary>
+    public PortalConfig? Portal { get; init; }
+
     public static PlacedNode Belt(GridPoint position, Direction direction) =>
         new() { Kind = NodeKind.Belt, Position = position, Direction = direction };
 
@@ -27,6 +30,9 @@ public sealed class PlacedNode
 
     public static PlacedNode Split(GridPoint position, SplitterConfig config) =>
         new() { Kind = NodeKind.Splitter, Position = position, Splitter = config };
+
+    public static PlacedNode TimePortal(GridPoint position, PortalConfig config) =>
+        new() { Kind = NodeKind.Portal, Position = position, Portal = config };
 }
 
 /// <summary>

@@ -11,4 +11,5 @@ public enum NodeKind
     Belt,
     Math,
     Splitter,
+    Portal,
 }

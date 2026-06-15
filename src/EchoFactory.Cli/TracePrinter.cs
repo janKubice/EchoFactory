@@ -27,6 +27,7 @@ internal static class TracePrinter
                 NodeKind.Belt => Arrow(n.Direction),
                 NodeKind.Math => "M",
                 NodeKind.Splitter => "X",
+                NodeKind.Portal => "@",
                 _ => "?",
             };
         }

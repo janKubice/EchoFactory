@@ -49,6 +49,7 @@ internal static class Tokens
         "belt" => NodeKind.Belt,
         "math" => NodeKind.Math,
         "splitter" => NodeKind.Splitter,
+        "portal" => NodeKind.Portal,
         _ => throw new ContentException($"{where}: unknown node type '{s}'"),
     };
 

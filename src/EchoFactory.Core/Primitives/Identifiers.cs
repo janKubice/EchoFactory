@@ -92,6 +92,17 @@ public readonly struct ItemId : IEquatable<ItemId>, IComparable<ItemId>
         return new ItemId(h);
     }
 
+    /// <summary>Identity for an item re-emitted by a time portal — stable given (portal, tick, value).</summary>
+    public static ItemId FromPortal(NodeId portal, int applyTick, int value)
+    {
+        ulong h = DeterministicHash.FnvOffset;
+        h = DeterministicHash.Combine(h, portal.Raw);
+        h = DeterministicHash.Combine(h, applyTick);
+        h = DeterministicHash.Combine(h, value);
+        h = DeterministicHash.Combine(h, 0x504F5254UL); // "PORT" salt — distinct from spawns
+        return new ItemId(h);
+    }
+
     public bool Equals(ItemId other) => Raw == other.Raw;
 
     public override bool Equals(object? obj) => obj is ItemId i && Equals(i);

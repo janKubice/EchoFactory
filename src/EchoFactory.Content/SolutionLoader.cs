@@ -74,6 +74,19 @@ public static class SolutionLoader
                     }));
                     break;
 
+                case NodeKind.Portal:
+                    if (pn.TimeOffset is not int offset)
+                    {
+                        throw new ContentException($"{where}: portal requires a time_offset");
+                    }
+
+                    nodes.Add(PlacedNode.TimePortal(pos, new PortalConfig
+                    {
+                        TimeOffset = offset,
+                        Output = Tokens.Dir(pn.Direction, where),
+                    }));
+                    break;
+
                 default:
                     throw new ContentException($"{where}: cannot place a node of kind {def.Kind} in a solution");
             }

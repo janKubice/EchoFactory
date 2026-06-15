@@ -7,6 +7,8 @@ public enum VisualEventKind
     Move,
     Consume,
     Math,
+    PortalIn,
+    PortalOut,
     Paradox,
 }
 
