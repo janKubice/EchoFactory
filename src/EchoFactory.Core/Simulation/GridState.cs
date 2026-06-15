@@ -6,6 +6,7 @@ public enum VisualEventKind
     Spawn,
     Move,
     Consume,
+    Math,
     Paradox,
 }
 

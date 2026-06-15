@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "id": "node_math_mul",
+  "name": "Multiplier",
+  "type": "math",
+  "category": "Math",
+  "logic": { "operation": "mul" },
+  "tick_cost": 1,
+  "visual": { "shape": "circle", "color_hex": "#9B59B6", "icon": "x" }
+}

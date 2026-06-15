@@ -20,6 +20,7 @@ public sealed class GridStateBuilder
     private readonly HashSet<GridPoint> _serviced = [];
     private readonly List<Consumed> _consumed = [];
     private readonly List<VisualEvent> _events = [];
+    private readonly List<ParadoxError> _reported = [];
 
     public GridStateBuilder(GridState current, GridSize grid)
     {
@@ -54,6 +55,16 @@ public sealed class GridStateBuilder
         _events.Add(new VisualEvent(VisualEventKind.Consume, cell, cell, item));
     }
 
+    /// <summary>Absorb an item into a node's internal buffer (math). Services the cell.</summary>
+    public void Absorb(GridPoint cell, Item item)
+    {
+        _serviced.Add(cell);
+        _events.Add(new VisualEvent(VisualEventKind.Math, cell, cell, item));
+    }
+
+    /// <summary>Report a paradox detected during the PROPOSE phase (e.g. math errors).</summary>
+    public void Report(ParadoxError paradox) => _reported.Add(paradox);
+
     /// <summary>
     /// Resolve proposals into the next state, or report the first paradox. Resolution order
     /// is fully deterministic so the reported paradox is stable across runs and platforms.
@@ -62,6 +73,16 @@ public sealed class GridStateBuilder
     {
         next = null!;
         paradox = null;
+
+        // 0) Paradoxes reported during PROPOSE (e.g. math errors). Deterministic pick.
+        if (_reported.Count > 0)
+        {
+            paradox = _reported
+                .OrderBy(static p => p.Cell)
+                .ThenBy(static p => (int)p.Kind)
+                .First();
+            return false;
+        }
 
         // 1) VOID (unserviced): any current item whose cell no node handled is lost.
         foreach (var kv in _current.Items.OrderBy(static kv => kv.Key))

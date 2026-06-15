@@ -14,16 +14,19 @@ hromada UI práce.
 
 | | Milníky | Stav |
 |---|---|---|
-| **DONE** | M0 setup · M1 single-pass engine | ✅ hotovo (9 testů zelených, CLI demo běží) |
-| **NOW** | M2 data pipeline (JSON → engine) | 🔜 další |
-| **NEXT** | M3 časové smyčky (USP) | připraveno |
-| **LATER** | M4–M5 hratelný slice → M6 editor → M7 Steam → M8 release | navrženo |
+| **DONE** | M0 setup · M1 engine · M2 data pipeline | ✅ hotovo (23 testů, `validate ./data` zelené) |
+| **NOW** | M3 časové smyčky (USP) | 🔜 další |
+| **NEXT** | M4–M5 hratelný slice (frontend + UI shell) | připraveno |
+| **LATER** | M6 editor → M7 Steam → M8 release | navrženo |
 
-> **Implementační stav (M1):** `EchoFactory.Core` má deterministický single-pass
-> engine — propose/commit tik, uzly Generator/Belt/Sink, deterministická
-> `ItemId`/`NodeId`, paradoxy Collision/Void, vyhodnocení cílů a metriky
-> (footprint, final tick). Pokryto 9 testy (vč. determinismu). `EchoFactory.Cli
-> demo` vykreslí časovou osu jako ASCII. Projekty `Game`/`Steam` přijdou v M4/M7.
+> **Implementační stav (M1+M2):** `EchoFactory.Core` má deterministický single-pass
+> engine (propose/commit tik; uzly Generator/Belt/Sink/**GenericMath**/**Splitter**;
+> deterministická `ItemId`/`NodeId`; paradoxy Collision/Void/**Math**; metriky).
+> `EchoFactory.Content` načítá a validuje JSON (uzly, levely, řešení) s
+> `schema_version` gate a „fail loud" chybami; node registry instancuje uzly z JSON.
+> `/data/` má 11 uzlů + 2 levely + 2 referenční řešení. `EchoFactory.Cli` umí
+> `demo`/`validate`/`run`/`verify`/`bench`. **23 testů** (Core + Content), vč.
+> determinismu a math levelu vyřešeného z čistě JSON uzlů. `Game`/`Steam` → M4/M7.
 
 ## Klíčové mezníky (milestones napříč fázemi)
 

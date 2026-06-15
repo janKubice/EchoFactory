@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "node_belt",
+  "name": "Belt",
+  "type": "belt",
+  "category": "Logistics",
+  "tick_cost": 1,
+  "visual": { "shape": "line", "color_hex": "#7F8C8D", "icon": ">" }
+}

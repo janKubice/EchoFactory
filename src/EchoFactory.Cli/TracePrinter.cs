@@ -20,9 +20,15 @@ internal static class TracePrinter
             layout[s.Position] = "S";
         }
 
-        foreach (var b in build.Belts)
+        foreach (var n in build.Nodes)
         {
-            layout[b.Position] = Arrow(b.Direction);
+            layout[n.Position] = n.Kind switch
+            {
+                NodeKind.Belt => Arrow(n.Direction),
+                NodeKind.Math => "M",
+                NodeKind.Splitter => "X",
+                _ => "?",
+            };
         }
 
         Console.WriteLine(Invariant(

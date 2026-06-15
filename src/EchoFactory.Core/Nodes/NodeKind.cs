@@ -9,4 +9,6 @@ public enum NodeKind
     Generator,
     Sink,
     Belt,
+    Math,
+    Splitter,
 }

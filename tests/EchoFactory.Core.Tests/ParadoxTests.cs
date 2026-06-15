@@ -54,10 +54,10 @@ public class ParadoxTests
         };
         var build = new Build
         {
-            Belts =
+            Nodes =
             [
-                new BeltPlacement(new GridPoint(1, 0), Direction.Right),
-                new BeltPlacement(new GridPoint(2, 0), Direction.Right), // pushes off the right edge
+                PlacedNode.Belt(new GridPoint(1, 0), Direction.Right),
+                PlacedNode.Belt(new GridPoint(2, 0), Direction.Right), // pushes off the right edge
             ],
         };
 

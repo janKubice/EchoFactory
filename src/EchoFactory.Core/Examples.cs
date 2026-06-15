@@ -30,12 +30,12 @@ public static class Examples
 
     public static Build LineDemoSolution() => new()
     {
-        Belts =
+        Nodes =
         [
-            new BeltPlacement(new GridPoint(1, 1), Direction.Right),
-            new BeltPlacement(new GridPoint(2, 1), Direction.Right),
-            new BeltPlacement(new GridPoint(3, 1), Direction.Right),
-            new BeltPlacement(new GridPoint(4, 1), Direction.Right),
+            PlacedNode.Belt(new GridPoint(1, 1), Direction.Right),
+            PlacedNode.Belt(new GridPoint(2, 1), Direction.Right),
+            PlacedNode.Belt(new GridPoint(3, 1), Direction.Right),
+            PlacedNode.Belt(new GridPoint(4, 1), Direction.Right),
         ],
     };
 }

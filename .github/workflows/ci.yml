@@ -32,6 +32,5 @@ jobs:
       - name: Test
         run: dotnet test EchoFactory.sln --configuration Release --no-build --verbosity normal
 
-      # Added in M2 with the JSON content pipeline:
-      # - name: Validate content
-      #   run: dotnet run --project src/EchoFactory.Cli -- validate ./data
+      - name: Validate content (nodes + levels + reference solutions)
+        run: dotnet run --project src/EchoFactory.Cli --configuration Release --no-build -- validate

@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "node_generator",
+  "name": "Generator",
+  "type": "generator",
+  "category": "IO",
+  "tick_cost": 1,
+  "visual": { "shape": "square", "color_hex": "#3498DB", "icon": "G" }
+}

@@ -1,43 +1,36 @@
 using EchoFactory.Cli;
-using EchoFactory.Core;
 
-if (args.Length == 0 || args[0] is "help" or "-h" or "--help")
+var (command, positionals, dataDir) = CliArgs.Parse(args);
+
+return command switch
+{
+    null or "help" or "-h" or "--help" => Help(),
+    "demo" => Commands.Demo(),
+    "validate" => Commands.Validate(dataDir),
+    "run" => Commands.Run(dataDir, positionals),
+    "verify" => Commands.Verify(dataDir, positionals),
+    "bench" => Commands.Bench(dataDir),
+    _ => Unknown(command),
+};
+
+static int Help()
 {
     Console.WriteLine("EchoFactory headless CLI");
     Console.WriteLine();
-    Console.WriteLine("Usage: echofactory <command>");
+    Console.WriteLine("Usage: echofactory <command> [--data <dir>]   (default --data ./data)");
     Console.WriteLine();
     Console.WriteLine("Commands:");
-    Console.WriteLine("  demo    Compile the built-in line example and print the timeline.");
-    Console.WriteLine("  help    Show this help.");
-    Console.WriteLine();
-    Console.WriteLine("(validate / verify / bench arrive in M2 with the JSON content pipeline.)");
+    Console.WriteLine("  demo                          Compile the built-in line example and print the timeline.");
+    Console.WriteLine("  validate                      Load & validate all node/level/solution JSON in the data dir.");
+    Console.WriteLine("  run <level_id> <solution_id>  Compile a JSON level + solution and print the timeline.");
+    Console.WriteLine("  verify <level_id> <sol_id>    Re-simulate a solution; report outcome + metrics (exit 0 if solved).");
+    Console.WriteLine("  bench                         Time compilation of every reference solution.");
+    Console.WriteLine("  help                          Show this help.");
     return 0;
 }
 
-switch (args[0])
+static int Unknown(string command)
 {
-    case "demo":
-        return RunDemo();
-
-    default:
-        Console.Error.WriteLine($"Unknown command: '{args[0]}'. Try 'help'.");
-        return 1;
-}
-
-static int RunDemo()
-{
-    var level = Examples.LineDemoLevel();
-    var build = Examples.LineDemoSolution();
-    var result = SimulationCompiler.Compile(level, build);
-
-    TracePrinter.Print(level, build, result);
-
-    // Exit code: 0 solved, 3 failed goal, 2 paradox.
-    return result.Outcome switch
-    {
-        LevelOutcome.Solved => 0,
-        LevelOutcome.Paradox => 2,
-        _ => 3,
-    };
+    Console.Error.WriteLine($"Unknown command: '{command}'. Try 'help'.");
+    return 1;
 }

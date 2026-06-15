@@ -25,10 +25,10 @@ public class DeterminismTests
         // Drop one belt: the item strands and the timeline diverges.
         var shorter = new Build
         {
-            Belts =
+            Nodes =
             [
-                new BeltPlacement(new GridPoint(1, 1), Direction.Right),
-                new BeltPlacement(new GridPoint(2, 1), Direction.Right),
+                PlacedNode.Belt(new GridPoint(1, 1), Direction.Right),
+                PlacedNode.Belt(new GridPoint(2, 1), Direction.Right),
             ],
         };
         var partial = SimulationCompiler.Compile(TestData.LineLevel(), shorter);

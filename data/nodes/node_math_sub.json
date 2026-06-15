@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "id": "node_math_sub",
+  "name": "Subtractor",
+  "type": "math",
+  "category": "Math",
+  "logic": { "operation": "sub" },
+  "tick_cost": 1,
+  "visual": { "shape": "circle", "color_hex": "#E67E22", "icon": "-" }
+}

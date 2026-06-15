@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "id": "node_math_mod",
+  "name": "Modulo",
+  "type": "math",
+  "category": "Math",
+  "logic": { "operation": "mod" },
+  "tick_cost": 1,
+  "visual": { "shape": "circle", "color_hex": "#16A085", "icon": "%" }
+}

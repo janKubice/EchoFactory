@@ -78,7 +78,7 @@ internal static class NodeFactory
 {
     public static List<INode> Create(LevelDefinition level, Build build)
     {
-        var nodes = new List<INode>(level.Generators.Count + level.Sinks.Count + build.Belts.Count);
+        var nodes = new List<INode>(level.Generators.Count + level.Sinks.Count + build.Nodes.Count);
 
         foreach (var g in level.Generators)
         {
@@ -90,11 +90,25 @@ internal static class NodeFactory
             nodes.Add(new SinkNode(NodeId.FromString(s.Id), s.Position, s.Expected));
         }
 
-        foreach (var b in build.Belts)
+        foreach (var placed in build.Nodes)
         {
-            nodes.Add(new BeltNode(NodeId.FromPlacement(NodeKind.Belt, b.Position), b.Position, b.Direction));
+            nodes.Add(CreatePlaced(placed));
         }
 
         return nodes;
+    }
+
+    private static INode CreatePlaced(PlacedNode p)
+    {
+        NodeId id = NodeId.FromPlacement(p.Kind, p.Position);
+        return p.Kind switch
+        {
+            NodeKind.Belt => new BeltNode(id, p.Position, p.Direction),
+            NodeKind.Math => new GenericMathNode(id, p.Position, p.Math
+                ?? throw new ArgumentException($"Math placement at {p.Position} has no MathConfig")),
+            NodeKind.Splitter => new SplitterNode(id, p.Position, p.Splitter
+                ?? throw new ArgumentException($"Splitter placement at {p.Position} has no SplitterConfig")),
+            _ => throw new ArgumentException($"Unsupported placed node kind: {p.Kind}"),
+        };
     }
 }

@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "id": "node_math_div",
+  "name": "Divider",
+  "type": "math",
+  "category": "Math",
+  "logic": { "operation": "div" },
+  "tick_cost": 1,
+  "visual": { "shape": "circle", "color_hex": "#1ABC9C", "icon": "/" }
+}

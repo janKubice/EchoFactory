@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "level_id": "lvl_line_01",
+  "placed_nodes": [
+    { "node": "node_belt", "position": { "x": 1, "y": 1 }, "direction": "right" },
+    { "node": "node_belt", "position": { "x": 2, "y": 1 }, "direction": "right" },
+    { "node": "node_belt", "position": { "x": 3, "y": 1 }, "direction": "right" },
+    { "node": "node_belt", "position": { "x": 4, "y": 1 }, "direction": "right" }
+  ]
+}

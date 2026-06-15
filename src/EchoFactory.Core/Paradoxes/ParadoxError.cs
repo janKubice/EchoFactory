@@ -57,5 +57,12 @@ public sealed class ParadoxError
         [item],
         FormattableString.Invariant($"Void at {cell} on tick {tick}: item left the valid system"));
 
+    public static ParadoxError Math(int tick, GridPoint cell, string detail) => new(
+        ParadoxKind.Math,
+        tick,
+        cell,
+        [],
+        FormattableString.Invariant($"Math paradox at {cell} on tick {tick}: {detail}"));
+
     public override string ToString() => Message;
 }
