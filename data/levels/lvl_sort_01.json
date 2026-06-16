@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "id": "lvl_sort_01",
+  "name": "Every Other",
+  "grid": { "width": 3, "height": 3 },
+  "max_ticks": 15,
+  "par": { "ticks": 7, "footprint": 2 },
+  "inventory": {
+    "mode": "whitelist",
+    "allowed": ["node_belt", "node_splitter"],
+    "limits": { "node_belt": 2, "node_splitter": 1 }
+  },
+  "fixed_nodes": [
+    {
+      "id": "gen",
+      "type": "generator",
+      "position": { "x": 0, "y": 1 },
+      "direction": "right",
+      "schedule": [
+        { "tick": 0, "value": 1 },
+        { "tick": 1, "value": 2 },
+        { "tick": 2, "value": 3 },
+        { "tick": 3, "value": 4 }
+      ]
+    },
+    { "id": "up", "type": "sink", "position": { "x": 2, "y": 0 }, "expected": [1, 3] },
+    { "id": "down", "type": "sink", "position": { "x": 2, "y": 2 }, "expected": [2, 4] }
+  ]
+}

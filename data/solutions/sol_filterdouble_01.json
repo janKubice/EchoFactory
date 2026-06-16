@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "level_id": "lvl_filterdouble_01",
+  "placed_nodes": [
+    { "node": "node_belt", "position": { "x": 1, "y": 1 }, "direction": "right" },
+    { "node": "node_filter", "position": { "x": 2, "y": 1 }, "direction": "right", "comparison": "ge", "constant": 3 },
+    { "node": "node_belt", "position": { "x": 3, "y": 1 }, "direction": "right" },
+    { "node": "node_math_mul", "position": { "x": 4, "y": 1 }, "direction": "right", "constant": 2 },
+    { "node": "node_belt", "position": { "x": 5, "y": 1 }, "direction": "right" }
+  ]
+}

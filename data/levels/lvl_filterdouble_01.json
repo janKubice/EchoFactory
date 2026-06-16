@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "lvl_filterdouble_01",
+  "name": "Big Ones Only",
+  "grid": { "width": 7, "height": 3 },
+  "max_ticks": 20,
+  "par": { "ticks": 10, "footprint": 5 },
+  "inventory": {
+    "mode": "whitelist",
+    "allowed": ["node_belt", "node_filter", "node_math_mul"],
+    "limits": { "node_belt": 4, "node_filter": 1, "node_math_mul": 1 }
+  },
+  "fixed_nodes": [
+    {
+      "id": "gen",
+      "type": "generator",
+      "position": { "x": 0, "y": 1 },
+      "direction": "right",
+      "schedule": [
+        { "tick": 0, "value": 1 },
+        { "tick": 1, "value": 2 },
+        { "tick": 2, "value": 3 },
+        { "tick": 3, "value": 4 },
+        { "tick": 4, "value": 5 }
+      ]
+    },
+    {
+      "id": "sink",
+      "type": "sink",
+      "position": { "x": 6, "y": 1 },
+      "expected": [6, 8, 10]
+    }
+  ]
+}
