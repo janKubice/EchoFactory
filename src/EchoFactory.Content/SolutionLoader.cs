@@ -11,6 +11,9 @@ public sealed class SolutionInfo
     public string? LevelHash { get; init; }
 
     public required Build Build { get; init; }
+
+    /// <summary>Node definition ids used, in placement order (for inventory checks).</summary>
+    public required IReadOnlyList<string> NodeIds { get; init; }
 }
 
 /// <summary>Parses a solution JSON into a <see cref="Build"/>, resolving node types via the registry.</summary>
@@ -42,9 +45,11 @@ public static class SolutionLoader
         string levelId = NodeRegistry.Require(dto.LevelId, "level_id", source);
 
         var nodes = new List<PlacedNode>();
+        var nodeIds = new List<string>();
         foreach (var pn in dto.PlacedNodes ?? [])
         {
             string nodeId = NodeRegistry.Require(pn.Node, "placed_nodes[].node", source);
+            nodeIds.Add(nodeId);
             string where = $"{source} (node '{nodeId}')";
             NodeDefinition def = registry.Find(nodeId)
                 ?? throw new ContentException($"{where}: unknown node id");
@@ -98,6 +103,7 @@ public static class SolutionLoader
             LevelId = levelId,
             LevelHash = dto.LevelHash,
             Build = new Build { Nodes = nodes },
+            NodeIds = nodeIds,
         };
     }
 }

@@ -59,4 +59,7 @@ public sealed class LevelDefinition
 
     /// <summary>Optional par targets for star rating.</summary>
     public LevelPar? Par { get; init; }
+
+    /// <summary>Optional inventory constraint (which nodes may be placed, and how many). Null = unlimited.</summary>
+    public LevelInventory? Inventory { get; init; }
 }

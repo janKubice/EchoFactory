@@ -145,7 +145,7 @@ internal sealed class GameplayScene : IScene
             }
         }
 
-        if (overGrid && input.LeftDown)
+        if (overGrid && input.LeftDown && CanPlaceTool(_tool, cell))
         {
             _editor.Place(MakeNode(_tool, cell, _dir));
         }
@@ -154,6 +154,26 @@ internal sealed class GameplayScene : IScene
         {
             _editor.Remove(cell);
         }
+    }
+
+    private bool CanPlaceTool(Tool tool, GridPoint cell)
+    {
+        string id = DefId(tool);
+        LevelInventory? inv = _level.Inventory;
+        if (inv is not null && !inv.Allows(id))
+        {
+            return false;
+        }
+
+        int limit = inv?.LimitFor(id) ?? int.MaxValue;
+        // Placing onto a cell already holding this def replaces it (count unchanged).
+        int used = CountDef(id);
+        if (_editor.At(cell) is { } existing && DefOf(existing) == id)
+        {
+            used--;
+        }
+
+        return used < limit;
     }
 
     private void UpdatePlayback(float dt, InputState input)
@@ -396,12 +416,21 @@ internal sealed class GameplayScene : IScene
     {
         foreach (var (rect, tool) in _palette)
         {
+            string id = DefId(tool);
+            bool allowed = _level.Inventory?.Allows(id) ?? true;
+            int limit = _level.Inventory?.LimitFor(id) ?? int.MaxValue;
+            int used = CountTool(tool);
             bool selected = tool == _tool;
+
             r.FillRect(rect.X, rect.Y, rect.Width, rect.Height, selected ? Palette.PanelHi : Palette.Panel);
             r.RectOutline(rect.X, rect.Y, rect.Width, rect.Height, 2, selected ? Palette.Accent : Palette.GridLine);
+
             string label = Tools.First(t => t.Tool == tool).Label;
-            r.TextCentered(label, new Vector2(rect.Center.X, rect.Center.Y - 6), 2.2f, selected ? Palette.Text : Palette.TextDim);
-            r.TextCentered("PLACED " + CountTool(tool), new Vector2(rect.Center.X, rect.Center.Y + 12), 1.8f, Palette.TextDim);
+            r.TextCentered(label, new Vector2(rect.Center.X, rect.Center.Y - 6), 2.2f, allowed ? (selected ? Palette.Text : Palette.TextDim) : Palette.Paradox);
+
+            string countText = !allowed ? "BLOCKED" : (limit == int.MaxValue ? used + " USED" : used + " / " + limit);
+            Color countColor = !allowed ? Palette.Paradox : (limit != int.MaxValue && used >= limit ? Palette.Failed : Palette.TextDim);
+            r.TextCentered(countText, new Vector2(rect.Center.X, rect.Center.Y + 12), 1.8f, countColor);
         }
 
         var btn = new UiButton(_compileBtn, "COMPILE");
@@ -449,6 +478,20 @@ internal sealed class GameplayScene : IScene
     // ---- helpers ----
 
     private int CountTool(Tool tool) => _editor.Nodes.Count(n => ToolOf(n) == tool);
+
+    private int CountDef(string id) => _editor.Nodes.Count(n => DefOf(n) == id);
+
+    private static string DefId(Tool tool) => tool switch
+    {
+        Tool.Belt => "node_belt",
+        Tool.MathAdd => "node_math_add",
+        Tool.MathMul => "node_math_mul",
+        Tool.Splitter => "node_splitter",
+        Tool.Portal => "node_portal",
+        _ => "node_belt",
+    };
+
+    private static string DefOf(PlacedNode n) => DefId(ToolOf(n));
 
     private static Tool ToolOf(PlacedNode n) => n.Kind switch
     {

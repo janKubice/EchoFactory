@@ -90,6 +90,27 @@ public static class LevelLoader
             Generators = generators,
             Sinks = sinks,
             Par = dto.Par is null ? null : new LevelPar { Ticks = dto.Par.Ticks, Footprint = dto.Par.Footprint },
+            Inventory = BuildInventory(dto.Inventory),
+        };
+    }
+
+    private static LevelInventory? BuildInventory(InventoryDto? dto)
+    {
+        if (dto is null)
+        {
+            return null;
+        }
+
+        bool blacklist = string.Equals(dto.Mode, "blacklist", StringComparison.OrdinalIgnoreCase);
+        IEnumerable<string> listed = (blacklist ? dto.Blocked : dto.Allowed) ?? [];
+
+        return new LevelInventory
+        {
+            Mode = blacklist ? InventoryMode.Blacklist : InventoryMode.Whitelist,
+            Listed = new HashSet<string>(listed, StringComparer.Ordinal),
+            Limits = dto.Limits is null
+                ? new Dictionary<string, int>(StringComparer.Ordinal)
+                : new Dictionary<string, int>(dto.Limits, StringComparer.Ordinal),
         };
     }
 

@@ -72,6 +72,14 @@ public static class ContentLibrary
             }
 
             LevelDefinition level = LevelLoader.LoadFile(levelPath);
+
+            string? inventoryViolation = InventoryCheck.Violation(level.Inventory, solution.NodeIds);
+            if (inventoryViolation is not null)
+            {
+                report.Errors.Add($"{name}: {inventoryViolation}");
+                return;
+            }
+
             SimulationResult result = SimulationCompiler.Compile(level, solution.Build);
             if (result.Outcome != LevelOutcome.Solved)
             {

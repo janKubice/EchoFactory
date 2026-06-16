@@ -37,6 +37,15 @@ internal sealed class LevelDto
     public bool StrictTiming { get; set; }
     public List<FixedNodeDto>? FixedNodes { get; set; }
     public ParDto? Par { get; set; }
+    public InventoryDto? Inventory { get; set; }
+}
+
+internal sealed class InventoryDto
+{
+    public string? Mode { get; set; }
+    public List<string>? Allowed { get; set; }
+    public List<string>? Blocked { get; set; }
+    public Dictionary<string, int>? Limits { get; set; }
 }
 
 internal sealed class ParDto

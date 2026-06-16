@@ -14,7 +14,7 @@ hromada UI práce.
 
 | | Milníky | Stav |
 |---|---|---|
-| **DONE** | M0–M3 engine + prohloubení · **hratelný MonoGame frontend** 🎮 | ✅ 30 testů, builduje + hraje se lokálně |
+| **DONE** | M0–M3 engine + prohloubení · **hratelný frontend** 🎮 · **inventář s limity** | ✅ 35 testů, builduje + hraje se lokálně |
 | **NOW** | Doladit frontend (nastavení, konfigurace uzlů v UI, audio) + víc obsahu | 🔜 |
 | **NEXT** | M6 editor levelů · M7 Steam (žebříčky, Workshop) | navrženo |
 | **LATER** | M8 release (přístupnost, polish) | navrženo |
@@ -292,8 +292,9 @@ Prohloubení enginu/obsahu odložené ve prospěch frontendu — vrátit se k ni
   je v modelu, zatím se kontroluje jen pořadí). Vyžaduje receipts s tiky.
 - **Filter/Gate uzel** — propustí item jen při splnění podmínky (eq/lt/gt vs.
   konstanta); jinak ho zahodí. Otevírá logické hádanky.
-- **Inventory enforcement** — `validate`/editor ověří, že řešení dodržuje
-  `inventory` (whitelist/blacklist + limity počtů) z levelu.
+- ✅ **Inventory enforcement** — HOTOVO: model `LevelInventory` (whitelist/
+  blacklist + limity), parsování JSON, enforcement ve `validate` i v editoru
+  (paleta ukazuje použito/limit, blokované nástroje). Levely kampaně mají limity.
 - **Víc kampaňových levelů** + těžší temporální hádanky (bootstrap, víc portálů).
 - **Server-side verify** — re-simulace řešení jako serverless krok (anti-cheat).
 

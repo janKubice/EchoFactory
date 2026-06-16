@@ -110,4 +110,37 @@ public class ContentTests
         Assert.Equal(first.Logic!.Operation, second.Logic!.Operation);
         Assert.Equal(first.Visual!.ColorHex, second.Visual!.ColorHex);
     }
+
+    [Fact]
+    public void InventoryCheck_DetectsViolations()
+    {
+        var inv = new LevelInventory
+        {
+            Mode = InventoryMode.Whitelist,
+            Listed = new HashSet<string> { "node_belt" },
+            Limits = new Dictionary<string, int> { ["node_belt"] = 2 },
+        };
+
+        Assert.Null(InventoryCheck.Violation(null, ["anything"]));                       // no inventory
+        Assert.Null(InventoryCheck.Violation(inv, ["node_belt", "node_belt"]));          // within limit
+        Assert.NotNull(InventoryCheck.Violation(inv, ["node_portal"]));                  // not allowed
+        Assert.NotNull(InventoryCheck.Violation(inv, ["node_belt", "node_belt", "node_belt"])); // over limit
+    }
+
+    [Fact]
+    public void LevelLoader_ParsesInventory()
+    {
+        const string json = """
+        { "schema_version": 1, "id": "lvl_x", "grid": { "width": 3, "height": 1 }, "max_ticks": 5,
+          "inventory": { "mode": "whitelist", "allowed": ["node_belt"], "limits": { "node_belt": 4 } },
+          "fixed_nodes": [] }
+        """;
+
+        LevelDefinition level = LevelLoader.Parse(json, "test");
+
+        Assert.NotNull(level.Inventory);
+        Assert.True(level.Inventory!.Allows("node_belt"));
+        Assert.False(level.Inventory.Allows("node_portal"));
+        Assert.Equal(4, level.Inventory.LimitFor("node_belt"));
+    }
 }

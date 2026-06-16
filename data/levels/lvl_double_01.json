@@ -5,6 +5,11 @@
   "grid": { "width": 5, "height": 3 },
   "max_ticks": 12,
   "par": { "ticks": 4, "footprint": 3 },
+  "inventory": {
+    "mode": "whitelist",
+    "allowed": ["node_belt", "node_math_mul"],
+    "limits": { "node_belt": 4, "node_math_mul": 1 }
+  },
   "fixed_nodes": [
     {
       "id": "gen",
