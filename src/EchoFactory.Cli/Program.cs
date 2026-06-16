@@ -1,6 +1,6 @@
 using EchoFactory.Cli;
 
-var (command, positionals, dataDir) = CliArgs.Parse(args);
+var (command, positionals, dataDir, options) = CliArgs.Parse(args);
 
 return command switch
 {
@@ -9,7 +9,7 @@ return command switch
     "validate" => Commands.Validate(dataDir),
     "list" => Commands.List(dataDir),
     "run" => Commands.Run(dataDir, positionals),
-    "verify" => Commands.Verify(dataDir, positionals),
+    "verify" => Commands.Verify(dataDir, positionals, options),
     "bench" => Commands.Bench(dataDir),
     _ => Unknown(command),
 };
@@ -25,7 +25,9 @@ static int Help()
     Console.WriteLine("  list                          List the node/level/solution ids in the data dir.");
     Console.WriteLine("  validate                      Load & validate all node/level/solution JSON in the data dir.");
     Console.WriteLine("  run <level_id> <solution_id>  Compile a JSON level + solution and print the timeline.");
-    Console.WriteLine("  verify <level_id> <sol_id>    Re-simulate a solution; report outcome + metrics (exit 0 if solved).");
+    Console.WriteLine("  verify <level_id> <sol_id> [--ticks N] [--footprint M]");
+    Console.WriteLine("                                Anti-cheat: re-simulate and accept only if it solves");
+    Console.WriteLine("                                (and matches the claimed metrics, if given).");
     Console.WriteLine("  bench                         Time compilation of every reference solution.");
     Console.WriteLine("  help                          Show this help.");
     return 0;

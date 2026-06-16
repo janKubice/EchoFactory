@@ -51,35 +51,31 @@ internal static class Commands
         return ExitFor(result.Outcome);
     });
 
-    public static int Verify(string dataDir, IReadOnlyList<string> args) => Guard(() =>
+    public static int Verify(string dataDir, IReadOnlyList<string> args, IReadOnlyDictionary<string, string> options) => Guard(() =>
     {
         if (args.Count < 2)
         {
-            Console.Error.WriteLine("usage: verify <level_id> <solution_id>");
+            Console.Error.WriteLine("usage: verify <level_id> <solution_id> [--ticks N] [--footprint M]");
             return 1;
         }
 
         var (level, solution) = Load(dataDir, args[0], args[1]);
-        var result = SimulationCompiler.Compile(level, solution.Build);
+        VerifyResult verdict = SubmissionVerifier.Verify(level, solution, ParseInt(options, "ticks"), ParseInt(options, "footprint"));
 
         Console.WriteLine($"Level    : {level.Id}");
-        Console.WriteLine($"Outcome  : {result.Outcome}");
-        if (result.Error is { } e)
-        {
-            Console.WriteLine($"Paradox  : {e.Message}");
-        }
-
-        Console.WriteLine($"Ticks    : {result.Stats.FinalTick}");
-        Console.WriteLine($"Footprint: {result.Stats.Footprint}");
-        if (level.Par is { } par)
-        {
-            int stars = StarRating.Compute(result, par);
-            Console.WriteLine($"Par      : {par.Ticks} ticks / {par.Footprint} nodes");
-            Console.WriteLine($"Stars    : {new string('*', stars)}{new string('.', 3 - stars)} ({stars}/3)");
-        }
-
-        return result.Outcome == LevelOutcome.Solved ? 0 : 1;
+        Console.WriteLine($"Verdict  : {(verdict.Accepted ? "ACCEPTED" : "REJECTED")}");
+        Console.WriteLine($"Reason   : {verdict.Reason}");
+        Console.WriteLine($"Ticks    : {verdict.Ticks}");
+        Console.WriteLine($"Footprint: {verdict.Footprint}");
+        Console.WriteLine($"Stars    : {new string('*', verdict.Stars)}{new string('.', 3 - verdict.Stars)} ({verdict.Stars}/3)");
+        return verdict.Accepted ? 0 : 1;
     });
+
+    private static int? ParseInt(IReadOnlyDictionary<string, string> options, string key) =>
+        options.TryGetValue(key, out string? s)
+            && int.TryParse(s, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int n)
+            ? n
+            : null;
 
     public static int List(string dataDir) => Guard(() =>
     {

@@ -14,7 +14,7 @@ hromada UI práce.
 
 | | Milníky | Stav |
 |---|---|---|
-| **DONE** | M0–M3 engine · **frontend** 🎮 · inventář · strict-timing · **filter uzel** | ✅ 39 testů, builduje + hraje se lokálně |
+| **DONE** | engine + **frontend** 🎮 · inventář · strict-timing · filter · **anti-cheat verify** | ✅ 43 testů, builduje + hraje se lokálně |
 | **NOW** | Doladit frontend (nastavení, konfigurace uzlů v UI, audio) + víc obsahu | 🔜 |
 | **NEXT** | M6 editor levelů · M7 Steam (žebříčky, Workshop) | navrženo |
 | **LATER** | M8 release (přístupnost, polish) | navrženo |
@@ -296,7 +296,8 @@ Prohloubení enginu/obsahu odložené ve prospěch frontendu — vrátit se k ni
   blacklist + limity), parsování JSON, enforcement ve `validate` i v editoru
   (paleta ukazuje použito/limit, blokované nástroje). Levely kampaně mají limity.
 - **Víc kampaňových levelů** + těžší temporální hádanky (bootstrap, víc portálů).
-- **Server-side verify** — re-simulace řešení jako serverless krok (anti-cheat).
+- ✅ **Server-side verify** — HOTOVO: `SubmissionVerifier` re-simuluje submit a
+  ověří inventář + že řeší + tvrzené metriky. CLI `verify ... --ticks N --footprint M`.
 
 # Otevřené otázky (k rozhodnutí)
 
