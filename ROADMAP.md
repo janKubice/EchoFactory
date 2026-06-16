@@ -14,9 +14,9 @@ hromada UI práce.
 
 | | Milníky | Stav |
 |---|---|---|
-| **DONE** | engine + **frontend** 🎮 · inventář · strict-timing · filter · **anti-cheat verify** | ✅ 43 testů, builduje + hraje se lokálně |
-| **NOW** | Doladit frontend (nastavení, konfigurace uzlů v UI, audio) + víc obsahu | 🔜 |
-| **NEXT** | M6 editor levelů · M7 Steam (žebříčky, Workshop) | navrženo |
+| **DONE** | engine + **frontend** 🎮 · inventář · strict-timing · filter · anti-cheat · **audio / nastavení / undo-redo / konfigurace uzlů** | ✅ 49 testů |
+| **NOW** | M6 in-game editor levelů + onboarding/tutoriály | 🔜 |
+| **NEXT** | M7 Steam (žebříčky, Workshop) | navrženo |
 | **LATER** | M8 release (přístupnost, polish) | navrženo |
 
 > **Frontend (hratelný slice):** `EchoFactory.Game` (MonoGame DesktopGL, vektorové

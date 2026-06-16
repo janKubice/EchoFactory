@@ -15,6 +15,10 @@ internal sealed class SceneManager
 
     public required LevelCatalog Catalog { get; init; }
 
+    public required GameSettings Settings { get; init; }
+
+    public required AudioManager Audio { get; init; }
+
     public required Action Quit { get; init; }
 
     public int ScreenW { get; set; }
@@ -22,6 +26,9 @@ internal sealed class SceneManager
     public int ScreenH { get; set; }
 
     public void Switch(IScene next) => _current = next;
+
+    /// <summary>Play a sound at the current effective SFX volume.</summary>
+    public void Play(Sfx sfx) => Audio.Play(sfx, Settings.EffectiveSfx);
 
     public void Update(float dt, InputState input) => _current?.Update(dt, input);
 

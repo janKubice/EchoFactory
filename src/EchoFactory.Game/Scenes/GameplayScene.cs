@@ -50,11 +50,16 @@ internal sealed class GameplayScene : IScene
 
     private Tool _tool = Tool.Belt;
     private Direction _dir = Direction.Right;
+    private int _mulConstant = 2;
+    private int _portalOffset = 2;
+    private int _filterConstant = 1;
+    private Comparison _filterComparison = Comparison.Ge;
     private PlayMode _mode = PlayMode.Build;
     private SimulationResult? _result;
     private float _playTime;
     private bool _playing;
-    private readonly float _speed = 3.5f;
+    private int _lastSoundTick = -1;
+    private bool _resultSoundPlayed;
     private Vector2 _mouse;
 
     public GameplayScene(SceneManager scenes, string levelId)
@@ -125,6 +130,19 @@ internal sealed class GameplayScene : IScene
 
     private void UpdateBuild(InputState input, bool overGrid, GridPoint cell)
     {
+        bool ctrl = input.KeyDown(Keys.LeftControl) || input.KeyDown(Keys.RightControl);
+        if (ctrl && input.KeyPressed(Keys.Z))
+        {
+            if (_editor.Undo()) _scenes.Play(Sfx.Click);
+            return;
+        }
+
+        if (ctrl && input.KeyPressed(Keys.Y))
+        {
+            if (_editor.Redo()) _scenes.Play(Sfx.Click);
+            return;
+        }
+
         if (input.KeyPressed(Keys.D1)) _tool = Tool.Belt;
         if (input.KeyPressed(Keys.D2)) _tool = Tool.MathAdd;
         if (input.KeyPressed(Keys.D3)) _tool = Tool.MathMul;
@@ -132,17 +150,23 @@ internal sealed class GameplayScene : IScene
         if (input.KeyPressed(Keys.D5)) _tool = Tool.Portal;
         if (input.KeyPressed(Keys.D6)) _tool = Tool.Filter;
         if (input.KeyPressed(Keys.R)) _dir = Cw(_dir);
-        if (input.KeyPressed(Keys.X)) _editor.Clear();
+
+        if (input.KeyPressed(Keys.OemPlus) || input.KeyPressed(Keys.Add)) AdjustConfig(+1);
+        if (input.KeyPressed(Keys.OemMinus) || input.KeyPressed(Keys.Subtract)) AdjustConfig(-1);
+        if (input.KeyPressed(Keys.Tab) && _tool == Tool.Filter) _filterComparison = (Comparison)(((int)_filterComparison + 1) % 6);
+
+        if (input.KeyPressed(Keys.X) && _editor.Clear()) _scenes.Play(Sfx.Remove);
         if (input.KeyPressed(Keys.L))
         {
             var reference = _scenes.Catalog.LoadReferenceSolution(_levelId);
             if (reference is not null)
             {
                 _editor.LoadFrom(reference.Build);
+                _scenes.Play(Sfx.Place);
             }
         }
 
-        if ((input.KeyPressed(Keys.Space) || input.KeyPressed(Keys.C) || (input.LeftClick && _compileBtn.Contains(Point(_mouse)))) && _editor.Count > 0)
+        if ((input.KeyPressed(Keys.Space) || (input.LeftClick && _compileBtn.Contains(Point(_mouse)))) && _editor.Count > 0)
         {
             Compile();
             return;
@@ -155,19 +179,43 @@ internal sealed class GameplayScene : IScene
                 if (rect.Contains(Point(_mouse)))
                 {
                     _tool = tool;
+                    _scenes.Play(Sfx.Click);
                     return;
                 }
             }
         }
 
-        if (overGrid && input.LeftDown && CanPlaceTool(_tool, cell))
+        if (overGrid && input.LeftDown && CanPlaceTool(_tool, cell) && _editor.Place(MakeNode(cell)))
         {
-            _editor.Place(MakeNode(_tool, cell, _dir));
+            _scenes.Play(Sfx.Place);
         }
 
-        if (overGrid && input.RightClick)
+        if (overGrid && input.RightClick && _editor.Remove(cell))
         {
-            _editor.Remove(cell);
+            _scenes.Play(Sfx.Remove);
+        }
+    }
+
+    private void AdjustConfig(int delta)
+    {
+        switch (_tool)
+        {
+            case Tool.MathMul:
+                _mulConstant = Math.Clamp(_mulConstant + delta, -9, 9);
+                break;
+            case Tool.Portal:
+                _portalOffset = Math.Clamp(_portalOffset + delta, -9, 9);
+                if (_portalOffset == 0)
+                {
+                    _portalOffset = delta > 0 ? 1 : -1;
+                }
+
+                break;
+            case Tool.Filter:
+                _filterConstant += delta;
+                break;
+            default:
+                break;
         }
     }
 
@@ -241,11 +289,35 @@ internal sealed class GameplayScene : IScene
 
         if (_playing)
         {
-            _playTime += dt * _speed;
+            _playTime += dt * _scenes.Settings.PlaybackSpeed;
             if (_playTime >= last)
             {
                 _playTime = last;
                 _playing = false;
+            }
+        }
+
+        if (_result is { } playback)
+        {
+            int curTick = Math.Clamp((int)MathF.Floor(_playTime), 0, last);
+            if (curTick != _lastSoundTick)
+            {
+                _lastSoundTick = curTick;
+                if (curTick < playback.States.Count && playback.States[curTick].Events.Any(static e => e.Kind == VisualEventKind.Consume))
+                {
+                    _scenes.Play(Sfx.Deliver);
+                }
+            }
+
+            if (!_resultSoundPlayed && _playTime >= last)
+            {
+                _resultSoundPlayed = true;
+                _scenes.Play(playback.Outcome switch
+                {
+                    LevelOutcome.Solved => Sfx.Solved,
+                    LevelOutcome.Paradox => Sfx.Paradox,
+                    _ => Sfx.Click,
+                });
             }
         }
     }
@@ -256,6 +328,9 @@ internal sealed class GameplayScene : IScene
         _mode = PlayMode.Playback;
         _playTime = 0;
         _playing = true;
+        _lastSoundTick = -1;
+        _resultSoundPlayed = false;
+        _scenes.Play(Sfx.Compile);
     }
 
     // ---- drawing ----
@@ -281,12 +356,15 @@ internal sealed class GameplayScene : IScene
 
     private void DrawGrid(Renderer r)
     {
-        for (int y = 0; y < _level.Grid.Height; y++)
+        if (_scenes.Settings.ShowGrid)
         {
-            for (int x = 0; x < _level.Grid.Width; x++)
+            for (int y = 0; y < _level.Grid.Height; y++)
             {
-                Vector2 tl = _grid.CellTopLeft(new GridPoint(x, y));
-                r.FillRect(tl.X + 1, tl.Y + 1, _grid.CellSize - 2, _grid.CellSize - 2, Palette.Grid);
+                for (int x = 0; x < _level.Grid.Width; x++)
+                {
+                    Vector2 tl = _grid.CellTopLeft(new GridPoint(x, y));
+                    r.FillRect(tl.X + 1, tl.Y + 1, _grid.CellSize - 2, _grid.CellSize - 2, Palette.Grid);
+                }
             }
         }
 
@@ -506,9 +584,22 @@ internal sealed class GameplayScene : IScene
         var btn = new UiButton(_compileBtn, "COMPILE");
         btn.Draw(r, _mouse);
 
-        r.Text("LEFT-DRAG PLACE   RIGHT REMOVE   R ROTATE (" + DirName(_dir) + ")   L LOAD SOLUTION   X CLEAR   SPACE COMPILE   ESC BACK",
+        r.Text("TOOL: " + ConfigLabel() + "      +/- ADJUST   TAB CYCLE   R ROTATE (" + DirName(_dir) + ")",
+            new Vector2(40, r.Height - 50), 2f, Palette.Accent);
+        r.Text("LEFT-DRAG PLACE   RIGHT REMOVE   CTRL+Z/Y UNDO/REDO   L LOAD   X CLEAR   SPACE COMPILE   ESC BACK",
             new Vector2(40, r.Height - 28), 2f, Palette.TextDim);
     }
+
+    private string ConfigLabel() => _tool switch
+    {
+        Tool.Belt => "BELT " + DirName(_dir),
+        Tool.MathAdd => "ADD (two inputs)",
+        Tool.MathMul => "MUL x" + _mulConstant,
+        Tool.Splitter => "SPLITTER",
+        Tool.Portal => "PORTAL offset " + _portalOffset,
+        Tool.Filter => "FILTER " + CompSym(_filterComparison) + _filterConstant,
+        _ => string.Empty,
+    };
 
     private void DrawPlaybackHud(Renderer r)
     {
@@ -665,15 +756,15 @@ internal sealed class GameplayScene : IScene
     private static string SinkValues(SinkSpec s) =>
         s.Expected.Count == 0 ? "-" : string.Join(" ", s.Expected.Select(static v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)));
 
-    private static PlacedNode MakeNode(Tool tool, GridPoint cell, Direction dir) => tool switch
+    private PlacedNode MakeNode(GridPoint cell) => _tool switch
     {
-        Tool.Belt => PlacedNode.Belt(cell, dir),
-        Tool.MathAdd => PlacedNode.MathOp(cell, new MathConfig { Operation = MathOperation.Add, Output = dir }),
-        Tool.MathMul => PlacedNode.MathOp(cell, new MathConfig { Operation = MathOperation.Mul, Output = dir, Constant = 2 }),
-        Tool.Splitter => PlacedNode.Split(cell, new SplitterConfig { OutputA = Cw(dir), OutputB = Ccw(dir) }),
-        Tool.Portal => PlacedNode.TimePortal(cell, new PortalConfig { TimeOffset = 2, Output = dir }),
-        Tool.Filter => PlacedNode.Gate(cell, new FilterConfig { Comparison = Comparison.Ge, Constant = 1, Output = dir }),
-        _ => PlacedNode.Belt(cell, dir),
+        Tool.Belt => PlacedNode.Belt(cell, _dir),
+        Tool.MathAdd => PlacedNode.MathOp(cell, new MathConfig { Operation = MathOperation.Add, Output = _dir }),
+        Tool.MathMul => PlacedNode.MathOp(cell, new MathConfig { Operation = MathOperation.Mul, Output = _dir, Constant = _mulConstant }),
+        Tool.Splitter => PlacedNode.Split(cell, new SplitterConfig { OutputA = Cw(_dir), OutputB = Ccw(_dir) }),
+        Tool.Portal => PlacedNode.TimePortal(cell, new PortalConfig { TimeOffset = _portalOffset, Output = _dir }),
+        Tool.Filter => PlacedNode.Gate(cell, new FilterConfig { Comparison = _filterComparison, Constant = _filterConstant, Output = _dir }),
+        _ => PlacedNode.Belt(cell, _dir),
     };
 
     private static string CompSym(Comparison c) => c switch

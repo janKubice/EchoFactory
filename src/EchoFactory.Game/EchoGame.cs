@@ -8,7 +8,9 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
 {
     private readonly GraphicsDeviceManager _graphics;
     private readonly InputState _input = new();
+    private readonly GameSettings _settings = SettingsStore.Load();
     private Renderer _renderer = null!;
+    private AudioManager _audio = null!;
     private SceneManager? _scenes;
     private string? _loadError;
 
@@ -27,6 +29,7 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
     protected override void LoadContent()
     {
         _renderer = new Renderer(GraphicsDevice);
+        _audio = new AudioManager();
 
         try
         {
@@ -34,6 +37,8 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
             _scenes = new SceneManager
             {
                 Catalog = catalog,
+                Settings = _settings,
+                Audio = _audio,
                 Quit = Exit,
                 ScreenW = GraphicsDevice.Viewport.Width,
                 ScreenH = GraphicsDevice.Viewport.Height,
@@ -80,7 +85,9 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
 
     protected override void UnloadContent()
     {
+        SettingsStore.Save(_settings);
         _renderer?.Dispose();
+        _audio?.Dispose();
         base.UnloadContent();
     }
 }

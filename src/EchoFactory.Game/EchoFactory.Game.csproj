@@ -15,6 +15,10 @@
     <ProjectReference Include="..\EchoFactory.Content\EchoFactory.Content.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="EchoFactory.Game.Tests" />
+  </ItemGroup>
+
   <!-- Copy the JSON content next to the executable so the game finds it after publish too. -->
   <ItemGroup>
     <None Include="..\..\data\**\*.json" Link="data\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />

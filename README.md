@@ -95,12 +95,18 @@ dotnet run --project src/EchoFactory.Game
 
 ### Ovládání hry
 
-**Build mode:** `1–5` výběr nástroje (pás / +add / ×mul / splitter / portál) ·
-levým tlačítkem (drag) položit · pravým smazat · `R` otočit · `L` načíst
-referenční řešení · `X` smazat vše · `Space`/`COMPILE` spustit simulaci · `Esc` zpět.
+**Build mode:** `1–6` výběr nástroje (pás / +add / ×mul / splitter / portál / filter) ·
+levým tlačítkem (drag) položit · pravým smazat · `R` otočit · `+/-` upravit parametr
+(násobek / offset portálu / práh filtru) · `Tab` cyklovat porovnání filtru ·
+`Ctrl+Z`/`Ctrl+Y` undo/redo · `L` načíst referenční řešení · `X` smazat vše ·
+`Space`/`COMPILE` spustit simulaci · `Esc` zpět.
 
 **Playback:** `Space` play/pauza · `←/→` krok · tažením po časové ose scrubbing ·
-`B` zpět do editace · `Esc` zpět. Zobrazí se výsledek (Solved/Paradox) a hvězdičky.
+`B` zpět do editace · `Esc` zpět. Po dohrání výsledková karta (Solved/Paradox,
+tiky, nodes, ★) s tlačítky RETRY / NEXT / LEVELS.
+
+**Zvuk a nastavení:** procedurální SFX; v hlavním menu **SETTINGS** (hlasitost
+master/SFX/hudba, mřížka) — uloží se do `echofactory-settings.json`.
 
 > Tip: na novém levelu zmáčkni `L` (načte referenční řešení) a `Space` — uvidíš
 > hru hned v akci, vč. `lvl_loop_01`, kde item dorazí do cíle *dřív, než vznikne*.
