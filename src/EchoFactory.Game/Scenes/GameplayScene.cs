@@ -26,9 +26,9 @@ internal sealed class GameplayScene : IScene
     {
         (Tool.Belt, "1 BELT"),
         (Tool.MathAdd, "2 ADD"),
-        (Tool.MathMul, "3 MUL x2"),
+        (Tool.MathMul, "3 MUL X2"),
         (Tool.Splitter, "4 SPLIT"),
-        (Tool.Portal, "5 PORTAL -2"),
+        (Tool.Portal, "5 PORTAL"),
     };
 
     private readonly SceneManager _scenes;
@@ -36,10 +36,11 @@ internal sealed class GameplayScene : IScene
     private readonly LevelDefinition _level;
     private readonly BuildEditor _editor;
     private readonly GridView _grid;
-    private readonly Rectangle _playArea;
     private readonly Rectangle _timeline;
     private readonly Rectangle _compileBtn;
     private readonly List<(Rectangle Rect, Tool Tool)> _palette = [];
+    private readonly string _startInfo;
+    private readonly string _goalInfo;
 
     private Tool _tool = Tool.Belt;
     private Direction _dir = Direction.Right;
@@ -47,7 +48,7 @@ internal sealed class GameplayScene : IScene
     private SimulationResult? _result;
     private float _playTime;
     private bool _playing;
-    private float _speed = 3.5f;
+    private readonly float _speed = 3.5f;
     private Vector2 _mouse;
 
     public GameplayScene(SceneManager scenes, string levelId)
@@ -59,8 +60,8 @@ internal sealed class GameplayScene : IScene
 
         int w = scenes.ScreenW;
         int h = scenes.ScreenH;
-        _playArea = new Rectangle(40, 72, w - 80, h - 72 - 150);
-        _grid = new GridView(_level.Grid, _playArea);
+        var playArea = new Rectangle(40, 108, w - 80, h - 108 - 150);
+        _grid = new GridView(_level.Grid, playArea);
         _timeline = new Rectangle(40, h - 64, w - 280, 18);
         _compileBtn = new Rectangle(w - 220, h - 132, 180, 48);
 
@@ -70,6 +71,13 @@ internal sealed class GameplayScene : IScene
             _palette.Add((new Rectangle(px, h - 132, 150, 48), tool));
             px += 158;
         }
+
+        _startInfo = _level.Generators.Count == 0
+            ? "-"
+            : string.Join("    ", _level.Generators.Select(GeneratorValues));
+        _goalInfo = _level.Sinks.Count == 0
+            ? "-"
+            : string.Join("    ", _level.Sinks.Select(SinkValues));
     }
 
     public void Update(float dt, InputState input)
@@ -125,7 +133,6 @@ internal sealed class GameplayScene : IScene
             return;
         }
 
-        // Palette selection takes priority over placing.
         if (input.LeftClick)
         {
             foreach (var (rect, tool) in _palette)
@@ -153,15 +160,8 @@ internal sealed class GameplayScene : IScene
     {
         int last = (_result?.States.Count ?? 1) - 1;
 
-        if (input.KeyPressed(Keys.Space))
-        {
-            _playing = !_playing;
-        }
-
-        if (input.KeyPressed(Keys.B))
-        {
-            _mode = PlayMode.Build;
-        }
+        if (input.KeyPressed(Keys.Space)) _playing = !_playing;
+        if (input.KeyPressed(Keys.B)) _mode = PlayMode.Build;
 
         if (input.KeyPressed(Keys.Left))
         {
@@ -245,12 +245,13 @@ internal sealed class GameplayScene : IScene
     {
         foreach (var g in _level.Generators)
         {
-            DrawBox(r, g.Position, Palette.Generator, "G");
+            DrawNodeCell(r, g.Position, Palette.Generator, "G", GeneratorValues(g));
+            DrawOutArrow(r, g.Position, g.Output, Palette.Generator);
         }
 
         foreach (var s in _level.Sinks)
         {
-            DrawBox(r, s.Position, Palette.Sink, "S");
+            DrawNodeCell(r, s.Position, Palette.Sink, "S", SinkValues(s));
         }
     }
 
@@ -264,13 +265,14 @@ internal sealed class GameplayScene : IScene
                     DrawBelt(r, node.Position, node.Direction);
                     break;
                 case NodeKind.Math:
-                    DrawBox(r, node.Position, Palette.Math, MathIcon(node.Math!.Operation));
+                    DrawNodeCell(r, node.Position, Palette.Math, MathIcon(node.Math!.Operation), node.Math!.Constant?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty);
+                    DrawOutArrow(r, node.Position, node.Math!.Output, Palette.Math);
                     break;
                 case NodeKind.Splitter:
-                    DrawBox(r, node.Position, Palette.Splitter, "Y");
+                    DrawNodeCell(r, node.Position, Palette.Splitter, "Y", string.Empty);
                     break;
                 case NodeKind.Portal:
-                    DrawPortal(r, node.Position);
+                    DrawPortal(r, node.Position, node.Portal!);
                     break;
                 default:
                     break;
@@ -290,7 +292,7 @@ internal sealed class GameplayScene : IScene
         GridState cur = _result.States[t];
         GridState nxt = _result.States[Math.Min(t + 1, _result.States.Count - 1)];
 
-        float radius = _grid.CellSize * 0.32f;
+        float radius = _grid.CellSize * 0.3f;
         foreach (var kv in cur.Items)
         {
             Vector2 from = _grid.CellCenter(kv.Key);
@@ -306,54 +308,88 @@ internal sealed class GameplayScene : IScene
 
             Vector2 pos = Vector2.Lerp(from, to, frac);
             r.Disc(pos, radius, Palette.Item);
-            r.TextCentered(kv.Value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture), pos, MathF.Max(2f, _grid.CellSize * 0.16f), Palette.ItemText);
+            r.TextCenteredFit(kv.Value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture), pos, radius * 1.3f, radius * 1.1f, Palette.ItemText);
         }
     }
 
-    private void DrawBox(Renderer r, GridPoint cell, Color color, string icon)
+    private void DrawNodeCell(Renderer r, GridPoint cell, Color color, string icon, string sub)
     {
         Vector2 tl = _grid.CellTopLeft(cell);
-        float pad = _grid.CellSize * 0.16f;
-        r.FillRect(tl.X + pad, tl.Y + pad, _grid.CellSize - (2 * pad), _grid.CellSize - (2 * pad), color);
-        r.TextCentered(icon, _grid.CellCenter(cell), MathF.Max(2f, _grid.CellSize * 0.2f), Palette.ItemText);
+        float s = _grid.CellSize;
+        float pad = s * 0.14f;
+        r.FillRect(tl.X + pad, tl.Y + pad, s - (2 * pad), s - (2 * pad), Palette.Panel);
+        r.RectOutline(tl.X + pad, tl.Y + pad, s - (2 * pad), s - (2 * pad), MathF.Max(2f, s * 0.03f), color);
+
+        Vector2 c = _grid.CellCenter(cell);
+        if (string.IsNullOrEmpty(sub))
+        {
+            r.TextCenteredFit(icon, c, s * 0.4f, s * 0.4f, color);
+        }
+        else
+        {
+            r.TextCenteredFit(icon, c - new Vector2(0, s * 0.16f), s * 0.4f, s * 0.26f, color);
+            r.TextCenteredFit(sub, c + new Vector2(0, s * 0.2f), s * 0.78f, s * 0.24f, Palette.Item);
+        }
     }
 
     private void DrawBelt(Renderer r, GridPoint cell, Direction dir)
     {
         Vector2 c = _grid.CellCenter(cell);
         Vector2 d = Offset(dir);
-        float half = _grid.CellSize * 0.42f;
-        Vector2 tail = c - (d * half);
-        Vector2 head = c + (d * half);
-        r.Line(tail, head, MathF.Max(2f, _grid.CellSize * 0.10f), Palette.Belt);
+        float half = _grid.CellSize * 0.4f;
+        r.Line(c - (d * half), c + (d * half), MathF.Max(2f, _grid.CellSize * 0.08f), Palette.Belt);
 
-        // arrowhead
+        Vector2 head = c + (d * half);
         Vector2 perp = new(-d.Y, d.X);
-        float a = _grid.CellSize * 0.16f;
+        float a = _grid.CellSize * 0.15f;
         r.Line(head, head - (d * a) + (perp * a), 3f, Palette.Belt);
         r.Line(head, head - (d * a) - (perp * a), 3f, Palette.Belt);
     }
 
-    private void DrawPortal(Renderer r, GridPoint cell)
+    private void DrawOutArrow(Renderer r, GridPoint cell, Direction dir, Color color)
+    {
+        Vector2 c = _grid.CellCenter(cell);
+        Vector2 d = Offset(dir);
+        float s = _grid.CellSize;
+        Vector2 tip = c + (d * s * 0.46f);
+        Vector2 baseP = c + (d * s * 0.34f);
+        Vector2 perp = new(-d.Y, d.X);
+        float a = s * 0.07f;
+        r.Line(baseP, tip, 3f, color);
+        r.Line(tip, tip - (d * a) + (perp * a), 3f, color);
+        r.Line(tip, tip - (d * a) - (perp * a), 3f, color);
+    }
+
+    private void DrawPortal(Renderer r, GridPoint cell, PortalConfig config)
     {
         Vector2 c = _grid.CellCenter(cell);
         float radius = _grid.CellSize * 0.34f;
-        r.Disc(c, radius, Palette.Portal);
-        r.TextCentered("@", c, MathF.Max(2f, _grid.CellSize * 0.2f), Palette.ItemText);
+        r.Disc(c, radius, Palette.Panel);
+        r.Ring(c, radius, MathF.Max(2f, _grid.CellSize * 0.03f), Palette.Portal);
+        r.TextCenteredFit("@", c, radius, radius, Palette.Portal);
+        DrawOutArrow(r, cell, config.Output, Palette.Portal);
         if (_mode == PlayMode.Playback)
         {
-            float pulse = radius + 3f + (MathF.Sin(_playTime * 4f) * 3f);
+            float pulse = radius + 4f + (MathF.Sin(_playTime * 4f) * 3f);
             r.Ring(c, pulse, 2f, Palette.Portal);
         }
     }
 
     private void DrawTopBar(Renderer r)
     {
-        r.FillRect(0, 0, r.Width, 60, Palette.Panel);
-        r.Text(_levelId.ToUpperInvariant(), new Vector2(40, 18), 4f, Palette.Text);
+        r.FillRect(0, 0, r.Width, 56, Palette.Panel);
+        r.Text(_levelId.ToUpperInvariant(), new Vector2(40, 18), 3.5f, Palette.Text);
         string mode = _mode == PlayMode.Build ? "BUILD" : "PLAYBACK";
-        r.Text("MODE " + mode, new Vector2(r.Width / 2f - 80, 22), 3f, Palette.Accent);
-        r.Text("NODES " + _editor.Count, new Vector2(r.Width - 220, 22), 3f, Palette.TextDim);
+        r.TextCentered("MODE " + mode, new Vector2(r.Width / 2f, 28), 3f, Palette.Accent);
+        r.Text("NODES " + _editor.Count, new Vector2(r.Width - 200, 22), 3f, Palette.TextDim);
+
+        // Objective strip
+        r.FillRect(0, 56, r.Width, 48, Palette.Background);
+        r.Text("START", new Vector2(40, 70), 2.4f, Palette.Generator);
+        r.Text(_startInfo, new Vector2(120, 68), 3.2f, Palette.Item);
+        float gx = r.Width / 2f + 40;
+        r.Text("GOAL", new Vector2(gx, 70), 2.4f, Palette.Sink);
+        r.Text(_goalInfo, new Vector2(gx + 70, 68), 3.2f, Palette.Item);
     }
 
     private void DrawBuildHud(Renderer r)
@@ -364,14 +400,15 @@ internal sealed class GameplayScene : IScene
             r.FillRect(rect.X, rect.Y, rect.Width, rect.Height, selected ? Palette.PanelHi : Palette.Panel);
             r.RectOutline(rect.X, rect.Y, rect.Width, rect.Height, 2, selected ? Palette.Accent : Palette.GridLine);
             string label = Tools.First(t => t.Tool == tool).Label;
-            r.TextCentered(label, new Vector2(rect.Center.X, rect.Center.Y), 2.4f, selected ? Palette.Text : Palette.TextDim);
+            r.TextCentered(label, new Vector2(rect.Center.X, rect.Center.Y - 6), 2.2f, selected ? Palette.Text : Palette.TextDim);
+            r.TextCentered("PLACED " + CountTool(tool), new Vector2(rect.Center.X, rect.Center.Y + 12), 1.8f, Palette.TextDim);
         }
 
         var btn = new UiButton(_compileBtn, "COMPILE");
         btn.Draw(r, _mouse);
 
-        r.Text("LEFT-DRAG PLACE   RIGHT-CLICK REMOVE   R ROTATE (" + DirName(_dir) + ")   L LOAD SOLUTION   X CLEAR   SPACE COMPILE   ESC BACK",
-            new Vector2(40, r.Height - 30), 2.2f, Palette.TextDim);
+        r.Text("LEFT-DRAG PLACE   RIGHT REMOVE   R ROTATE (" + DirName(_dir) + ")   L LOAD SOLUTION   X CLEAR   SPACE COMPILE   ESC BACK",
+            new Vector2(40, r.Height - 28), 2f, Palette.TextDim);
     }
 
     private void DrawPlaybackHud(Renderer r)
@@ -391,25 +428,42 @@ internal sealed class GameplayScene : IScene
         {
             (string text, Color color) = res.Outcome switch
             {
-                LevelOutcome.Solved => ("SOLVED", Palette.Solved),
+                LevelOutcome.Solved => ("SOLVED!", Palette.Solved),
                 LevelOutcome.Paradox => ("PARADOX: " + (res.Error?.Message ?? string.Empty), Palette.Paradox),
-                _ => ("NOT SOLVED YET", Palette.Failed),
+                _ => ("NOT SOLVED - WRONG OR MISSING OUTPUT", Palette.Failed),
             };
             r.Text(text, new Vector2(40, r.Height - 132), 3f, color);
 
             if (res.Outcome == LevelOutcome.Solved)
             {
                 int stars = StarRating.Compute(res, _level.Par);
-                r.Text("STARS " + new string('*', stars) + new string('.', 3 - stars) + "   TICKS " + res.Stats.FinalTick + "   NODES " + res.Stats.Footprint,
+                r.Text("STARS " + new string('*', stars) + new string('.', 3 - stars) + "    TICKS " + res.Stats.FinalTick + "    NODES " + res.Stats.Footprint,
                     new Vector2(40, r.Height - 104), 2.6f, Palette.Text);
             }
         }
 
         r.Text("SPACE PLAY/PAUSE   LEFT/RIGHT STEP   DRAG TIMELINE   B EDIT   ESC BACK",
-            new Vector2(40, r.Height - 30), 2.2f, Palette.TextDim);
+            new Vector2(40, r.Height - 28), 2f, Palette.TextDim);
     }
 
     // ---- helpers ----
+
+    private int CountTool(Tool tool) => _editor.Nodes.Count(n => ToolOf(n) == tool);
+
+    private static Tool ToolOf(PlacedNode n) => n.Kind switch
+    {
+        NodeKind.Belt => Tool.Belt,
+        NodeKind.Splitter => Tool.Splitter,
+        NodeKind.Portal => Tool.Portal,
+        NodeKind.Math => n.Math!.Constant.HasValue ? Tool.MathMul : Tool.MathAdd,
+        _ => Tool.Belt,
+    };
+
+    private static string GeneratorValues(GeneratorSpec g) =>
+        string.Join(" ", g.Schedule.OrderBy(static s => s.Tick).Select(static s => s.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+
+    private static string SinkValues(SinkSpec s) =>
+        s.Expected.Count == 0 ? "-" : string.Join(" ", s.Expected.Select(static v => v.ToString(System.Globalization.CultureInfo.InvariantCulture)));
 
     private static PlacedNode MakeNode(Tool tool, GridPoint cell, Direction dir) => tool switch
     {

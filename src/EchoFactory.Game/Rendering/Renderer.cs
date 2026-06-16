@@ -134,6 +134,20 @@ internal sealed class Renderer : IDisposable
         Text(text, new Vector2(center.X - (size.X / 2f), center.Y - (size.Y / 2f)), pixel, color);
     }
 
+    /// <summary>Draws text centered on <paramref name="center"/>, scaled to fit within maxW x maxH.</summary>
+    public void TextCenteredFit(string text, Vector2 center, float maxW, float maxH, Color color)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        float widthAtOne = (text.Length * (VectorFont.GlyphW + 1)) - 1f;
+        float pixel = MathF.Min(maxW / widthAtOne, maxH / VectorFont.GlyphH);
+        pixel = MathF.Max(pixel, 0.75f);
+        TextCentered(text, center, pixel, color);
+    }
+
     public static Vector2 Measure(string text, float pixel) =>
         new(text.Length <= 0 ? 0 : (text.Length * (VectorFont.GlyphW + 1) * pixel) - pixel, VectorFont.GlyphH * pixel);
 
