@@ -12,4 +12,5 @@ public enum NodeKind
     Math,
     Splitter,
     Portal,
+    Filter,
 }

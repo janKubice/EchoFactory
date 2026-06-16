@@ -50,7 +50,19 @@ internal static class Tokens
         "math" => NodeKind.Math,
         "splitter" => NodeKind.Splitter,
         "portal" => NodeKind.Portal,
+        "filter" => NodeKind.Filter,
         _ => throw new ContentException($"{where}: unknown node type '{s}'"),
+    };
+
+    public static Comparison Comparison(string? s, string where) => Normalize(s) switch
+    {
+        "eq" => Core.Comparison.Eq,
+        "ne" => Core.Comparison.Ne,
+        "lt" => Core.Comparison.Lt,
+        "le" => Core.Comparison.Le,
+        "gt" => Core.Comparison.Gt,
+        "ge" => Core.Comparison.Ge,
+        _ => throw new ContentException($"{where}: unknown comparison '{s}'"),
     };
 
     public static MathOperation Op(string? s, string where) => Normalize(s) switch

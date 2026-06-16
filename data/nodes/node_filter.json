@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "node_filter",
+  "name": "Filter",
+  "type": "filter",
+  "category": "Logic",
+  "tick_cost": 1,
+  "visual": { "shape": "hexagon", "color_hex": "#1ABC9C", "icon": "F" }
+}

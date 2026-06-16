@@ -22,6 +22,9 @@ public sealed class PlacedNode
     /// <summary>Set when Kind == Portal.</summary>
     public PortalConfig? Portal { get; init; }
 
+    /// <summary>Set when Kind == Filter.</summary>
+    public FilterConfig? Filter { get; init; }
+
     public static PlacedNode Belt(GridPoint position, Direction direction) =>
         new() { Kind = NodeKind.Belt, Position = position, Direction = direction };
 
@@ -33,6 +36,9 @@ public sealed class PlacedNode
 
     public static PlacedNode TimePortal(GridPoint position, PortalConfig config) =>
         new() { Kind = NodeKind.Portal, Position = position, Portal = config };
+
+    public static PlacedNode Gate(GridPoint position, FilterConfig config) =>
+        new() { Kind = NodeKind.Filter, Position = position, Filter = config };
 }
 
 /// <summary>

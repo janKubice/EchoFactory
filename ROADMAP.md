@@ -14,7 +14,7 @@ hromada UI práce.
 
 | | Milníky | Stav |
 |---|---|---|
-| **DONE** | M0–M3 engine · **hratelný frontend** 🎮 · inventář · strict-timing | ✅ 37 testů, builduje + hraje se lokálně |
+| **DONE** | M0–M3 engine · **frontend** 🎮 · inventář · strict-timing · **filter uzel** | ✅ 39 testů, builduje + hraje se lokálně |
 | **NOW** | Doladit frontend (nastavení, konfigurace uzlů v UI, audio) + víc obsahu | 🔜 |
 | **NEXT** | M6 editor levelů · M7 Steam (žebříčky, Workshop) | navrženo |
 | **LATER** | M8 release (přístupnost, polish) | navrženo |
@@ -290,8 +290,8 @@ Prohloubení enginu/obsahu odložené ve prospěch frontendu — vrátit se k ni
 
 - ✅ **Strict-timing cíle** — HOTOVO: sink s `expected_ticks` + `strict_timing`;
   kompilátor ověřuje přesné tiky doručení. Level `lvl_timed_01`.
-- **Filter/Gate uzel** — propustí item jen při splnění podmínky (eq/lt/gt vs.
-  konstanta); jinak ho zahodí. Otevírá logické hádanky.
+- ✅ **Filter/Gate uzel** — HOTOVO: `FilterNode` (eq/ne/lt/le/gt/ge vs. konstanta),
+  jinak item zahodí. Level `lvl_filter_01` (propusť ≥3); nástroj `6` ve frontendu.
 - ✅ **Inventory enforcement** — HOTOVO: model `LevelInventory` (whitelist/
   blacklist + limity), parsování JSON, enforcement ve `validate` i v editoru
   (paleta ukazuje použito/limit, blokované nástroje). Levely kampaně mají limity.

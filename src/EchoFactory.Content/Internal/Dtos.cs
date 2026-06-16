@@ -101,4 +101,5 @@ internal sealed class PlacedNodeDto
     public bool StartWithA { get; set; } = true;
     public int? TimeOffset { get; set; }
     public int? Constant { get; set; }
+    public string? Comparison { get; set; }
 }

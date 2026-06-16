@@ -93,6 +93,20 @@ public static class SolutionLoader
                     }));
                     break;
 
+                case NodeKind.Filter:
+                    if (pn.Constant is not int threshold)
+                    {
+                        throw new ContentException($"{where}: filter requires a constant");
+                    }
+
+                    nodes.Add(PlacedNode.Gate(pos, new FilterConfig
+                    {
+                        Comparison = Tokens.Comparison(pn.Comparison, where),
+                        Constant = threshold,
+                        Output = Tokens.Dir(pn.Direction, where),
+                    }));
+                    break;
+
                 default:
                     throw new ContentException($"{where}: cannot place a node of kind {def.Kind} in a solution");
             }

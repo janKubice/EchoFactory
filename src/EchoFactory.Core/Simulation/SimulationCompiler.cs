@@ -211,6 +211,8 @@ internal static class NodeFactory
                 ?? throw new ArgumentException($"Splitter placement at {p.Position} has no SplitterConfig")),
             NodeKind.Portal => new PortalNode(id, p.Position, p.Portal
                 ?? throw new ArgumentException($"Portal placement at {p.Position} has no PortalConfig")),
+            NodeKind.Filter => new FilterNode(id, p.Position, p.Filter
+                ?? throw new ArgumentException($"Filter placement at {p.Position} has no FilterConfig")),
             _ => throw new ArgumentException($"Unsupported placed node kind: {p.Kind}"),
         };
     }

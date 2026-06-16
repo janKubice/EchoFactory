@@ -11,6 +11,7 @@ internal enum Tool
     MathMul,
     Splitter,
     Portal,
+    Filter,
 }
 
 internal enum PlayMode
@@ -29,6 +30,7 @@ internal sealed class GameplayScene : IScene
         (Tool.MathMul, "3 MUL X2"),
         (Tool.Splitter, "4 SPLIT"),
         (Tool.Portal, "5 PORTAL"),
+        (Tool.Filter, "6 FILTER"),
     };
 
     private readonly SceneManager _scenes;
@@ -116,6 +118,7 @@ internal sealed class GameplayScene : IScene
         if (input.KeyPressed(Keys.D3)) _tool = Tool.MathMul;
         if (input.KeyPressed(Keys.D4)) _tool = Tool.Splitter;
         if (input.KeyPressed(Keys.D5)) _tool = Tool.Portal;
+        if (input.KeyPressed(Keys.D6)) _tool = Tool.Filter;
         if (input.KeyPressed(Keys.R)) _dir = Cw(_dir);
         if (input.KeyPressed(Keys.X)) _editor.Clear();
         if (input.KeyPressed(Keys.L))
@@ -293,6 +296,10 @@ internal sealed class GameplayScene : IScene
                     break;
                 case NodeKind.Portal:
                     DrawPortal(r, node.Position, node.Portal!);
+                    break;
+                case NodeKind.Filter:
+                    DrawNodeCell(r, node.Position, Palette.Filter, "F", CompSym(node.Filter!.Comparison) + node.Filter!.Constant.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    DrawOutArrow(r, node.Position, node.Filter!.Output, Palette.Filter);
                     break;
                 default:
                     break;
@@ -488,6 +495,7 @@ internal sealed class GameplayScene : IScene
         Tool.MathMul => "node_math_mul",
         Tool.Splitter => "node_splitter",
         Tool.Portal => "node_portal",
+        Tool.Filter => "node_filter",
         _ => "node_belt",
     };
 
@@ -498,6 +506,7 @@ internal sealed class GameplayScene : IScene
         NodeKind.Belt => Tool.Belt,
         NodeKind.Splitter => Tool.Splitter,
         NodeKind.Portal => Tool.Portal,
+        NodeKind.Filter => Tool.Filter,
         NodeKind.Math => n.Math!.Constant.HasValue ? Tool.MathMul : Tool.MathAdd,
         _ => Tool.Belt,
     };
@@ -515,7 +524,19 @@ internal sealed class GameplayScene : IScene
         Tool.MathMul => PlacedNode.MathOp(cell, new MathConfig { Operation = MathOperation.Mul, Output = dir, Constant = 2 }),
         Tool.Splitter => PlacedNode.Split(cell, new SplitterConfig { OutputA = Cw(dir), OutputB = Ccw(dir) }),
         Tool.Portal => PlacedNode.TimePortal(cell, new PortalConfig { TimeOffset = 2, Output = dir }),
+        Tool.Filter => PlacedNode.Gate(cell, new FilterConfig { Comparison = Comparison.Ge, Constant = 1, Output = dir }),
         _ => PlacedNode.Belt(cell, dir),
+    };
+
+    private static string CompSym(Comparison c) => c switch
+    {
+        Comparison.Eq => "=",
+        Comparison.Ne => "!=",
+        Comparison.Lt => "<",
+        Comparison.Le => "<=",
+        Comparison.Gt => ">",
+        Comparison.Ge => ">=",
+        _ => "?",
     };
 
     private static string MathIcon(MathOperation op) => op switch

@@ -69,6 +69,13 @@ public sealed class GridStateBuilder
         _events.Add(new VisualEvent(VisualEventKind.Math, cell, cell, item));
     }
 
+    /// <summary>Destroy an item (filter rejected it). Services the cell; not a sink delivery.</summary>
+    public void Drop(GridPoint cell, Item item)
+    {
+        _serviced.Add(cell);
+        _events.Add(new VisualEvent(VisualEventKind.Consume, cell, cell, item));
+    }
+
     /// <summary>Report a paradox detected during the PROPOSE phase (e.g. math errors).</summary>
     public void Report(ParadoxError paradox) => _reported.Add(paradox);
 

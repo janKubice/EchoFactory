@@ -16,6 +16,7 @@ internal static class Palette
     public static readonly Color Math = new(46, 204, 113);
     public static readonly Color Splitter = new(243, 156, 18);
     public static readonly Color Portal = new(232, 67, 147);
+    public static readonly Color Filter = new(26, 188, 156);
     public static readonly Color Text = new(224, 224, 234);
     public static readonly Color TextDim = new(128, 128, 145);
     public static readonly Color Accent = new(0, 200, 255);
