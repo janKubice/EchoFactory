@@ -13,6 +13,7 @@ internal sealed class LevelSelectScene : IScene
     public LevelSelectScene(SceneManager scenes)
     {
         _scenes = scenes;
+        scenes.Catalog.Reload(); // pick up any editor-saved levels
         int w = scenes.ScreenW;
 
         const int bw = 360;

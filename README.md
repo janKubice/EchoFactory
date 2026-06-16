@@ -108,6 +108,10 @@ tiky, nodes, ★) s tlačítky RETRY / NEXT / LEVELS.
 **Zvuk a nastavení:** procedurální SFX; v hlavním menu **SETTINGS** (hlasitost
 master/SFX/hudba, mřížka) — uloží se do `echofactory-settings.json`.
 
+**Editor levelů:** v menu **LEVEL EDITOR** — `G`/`S` nástroj generátor/cíl, klik
+umístit/vybrat, `0-9` přidat hodnotu vybranému uzlu, šipky změní velikost mřížky,
+`T` otestovat, `Ctrl+S` uložit (level se objeví ve výběru levelů).
+
 > Tip: na novém levelu zmáčkni `L` (načte referenční řešení) a `Space` — uvidíš
 > hru hned v akci, vč. `lvl_loop_01`, kde item dorazí do cíle *dřív, než vznikne*.
 

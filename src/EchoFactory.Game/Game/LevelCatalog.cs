@@ -10,8 +10,19 @@ internal sealed class LevelCatalog
     {
         DataDir = dataDir;
         Registry = NodeRegistry.LoadFromDirectory(Path.Combine(dataDir, "nodes"));
+        Reload();
+    }
 
-        string levelsDir = Path.Combine(dataDir, "levels");
+    public string DataDir { get; }
+
+    public NodeRegistry Registry { get; }
+
+    public IReadOnlyList<string> LevelIds { get; private set; } = [];
+
+    /// <summary>Re-scans the levels directory (so editor-saved levels appear).</summary>
+    public void Reload()
+    {
+        string levelsDir = Path.Combine(DataDir, "levels");
         LevelIds = Directory.Exists(levelsDir)
             ? Directory.EnumerateFiles(levelsDir, "*.json")
                 .Select(Path.GetFileNameWithoutExtension)
@@ -21,12 +32,6 @@ internal sealed class LevelCatalog
                 .ToList()
             : [];
     }
-
-    public string DataDir { get; }
-
-    public NodeRegistry Registry { get; }
-
-    public IReadOnlyList<string> LevelIds { get; }
 
     public LevelDefinition LoadLevel(string id) =>
         LevelLoader.LoadFile(Path.Combine(DataDir, "levels", id + ".json"));

@@ -63,10 +63,15 @@ internal sealed class GameplayScene : IScene
     private Vector2 _mouse;
 
     public GameplayScene(SceneManager scenes, string levelId)
+        : this(scenes, levelId, scenes.Catalog.LoadLevel(levelId))
+    {
+    }
+
+    public GameplayScene(SceneManager scenes, string levelId, LevelDefinition level)
     {
         _scenes = scenes;
         _levelId = levelId;
-        _level = scenes.Catalog.LoadLevel(levelId);
+        _level = level;
         _editor = new BuildEditor(_level);
 
         int w = scenes.ScreenW;

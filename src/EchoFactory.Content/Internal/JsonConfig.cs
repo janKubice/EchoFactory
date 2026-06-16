@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using EchoFactory.Core;
 
 namespace EchoFactory.Content;
@@ -12,6 +13,8 @@ internal static class JsonConfig
         PropertyNameCaseInsensitive = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
         AllowTrailingCommas = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        WriteIndented = true,
     };
 }
 
