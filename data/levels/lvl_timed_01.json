@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "id": "lvl_timed_01",
+  "name": "On Schedule",
+  "grid": { "width": 6, "height": 3 },
+  "max_ticks": 20,
+  "strict_timing": true,
+  "par": { "ticks": 7, "footprint": 4 },
+  "inventory": {
+    "mode": "whitelist",
+    "allowed": ["node_belt"],
+    "limits": { "node_belt": 6 }
+  },
+  "fixed_nodes": [
+    {
+      "id": "gen",
+      "type": "generator",
+      "position": { "x": 0, "y": 1 },
+      "direction": "right",
+      "schedule": [
+        { "tick": 0, "value": 1 },
+        { "tick": 1, "value": 2 },
+        { "tick": 2, "value": 3 }
+      ]
+    },
+    {
+      "id": "sink",
+      "type": "sink",
+      "position": { "x": 5, "y": 1 },
+      "expected": [1, 2, 3],
+      "expected_ticks": [5, 6, 7]
+    }
+  ]
+}

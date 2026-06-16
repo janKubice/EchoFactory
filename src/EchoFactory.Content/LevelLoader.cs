@@ -72,6 +72,7 @@ public static class LevelLoader
                         Id = fid,
                         Position = pos,
                         Expected = fn.Expected ?? [],
+                        ExpectedTicks = fn.ExpectedTicks,
                     });
                     break;
 

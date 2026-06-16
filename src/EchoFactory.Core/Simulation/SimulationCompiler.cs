@@ -59,7 +59,7 @@ public static class SimulationCompiler
         var nodes = NodeFactory.Create(level, build);
 
         var states = new List<GridState>(level.MaxTicks + 1) { GridState.Empty(0) };
-        var receipts = new Dictionary<NodeId, List<int>>();
+        var receipts = new Dictionary<NodeId, List<(int Value, int Tick)>>();
         var emissions = new List<PortalEmission>();
         int lastDelivery = 0;
 
@@ -105,7 +105,7 @@ public static class SimulationCompiler
                     receipts[consumed.Sink] = list = [];
                 }
 
-                list.Add(consumed.Item.Value);
+                list.Add((consumed.Item.Value, consumed.Tick));
                 lastDelivery = consumed.Tick;
             }
 
@@ -137,14 +137,21 @@ public static class SimulationCompiler
         };
     }
 
-    private static LevelOutcome EvaluateOutcome(LevelDefinition level, Dictionary<NodeId, List<int>> receipts)
+    private static LevelOutcome EvaluateOutcome(LevelDefinition level, Dictionary<NodeId, List<(int Value, int Tick)>> receipts)
     {
         foreach (var sink in level.Sinks)
         {
             var id = NodeId.FromString(sink.Id);
-            IReadOnlyList<int> received = receipts.TryGetValue(id, out var list) ? list : [];
+            IReadOnlyList<(int Value, int Tick)> received = receipts.TryGetValue(id, out var list) ? list : [];
 
-            if (!received.SequenceEqual(sink.Expected))
+            if (!received.Select(static r => r.Value).SequenceEqual(sink.Expected))
+            {
+                return LevelOutcome.Failed;
+            }
+
+            if (level.StrictTiming
+                && sink.ExpectedTicks is { } ticks
+                && !received.Select(static r => r.Tick).SequenceEqual(ticks))
             {
                 return LevelOutcome.Failed;
             }
@@ -159,7 +166,7 @@ public static class SimulationCompiler
 
         public required InjectionSet Injections { get; init; }
 
-        public required Dictionary<NodeId, List<int>> Receipts { get; init; }
+        public required Dictionary<NodeId, List<(int Value, int Tick)>> Receipts { get; init; }
 
         public int LastDeliveryTick { get; init; }
 

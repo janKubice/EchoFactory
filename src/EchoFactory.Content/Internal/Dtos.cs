@@ -80,6 +80,7 @@ internal sealed class FixedNodeDto
     public string? Direction { get; set; }
     public List<SpawnDto>? Schedule { get; set; }
     public List<int>? Expected { get; set; }
+    public List<int>? ExpectedTicks { get; set; }
 }
 
 internal sealed class SolutionDto

@@ -31,8 +31,12 @@ public sealed class SinkSpec
 
     public required GridPoint Position { get; init; }
 
-    /// <summary>Required values, in arrival order. (Strict per-tick timing: future milestone.)</summary>
+    /// <summary>Required values, in arrival order.</summary>
     public required IReadOnlyList<int> Expected { get; init; }
+
+    /// <summary>Required arrival ticks, parallel to <see cref="Expected"/>. Used only when the level
+    /// has <c>StrictTiming</c>; null means "any tick".</summary>
+    public IReadOnlyList<int>? ExpectedTicks { get; init; }
 }
 
 /// <summary>
