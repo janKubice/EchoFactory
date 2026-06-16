@@ -34,8 +34,18 @@ public static class SimulationCompiler
                 // Fixed point: this pass is self-consistent (its assumed injections == produced).
                 LevelOutcome outcome = EvaluateOutcome(level, pass.Receipts);
                 int finalTick = outcome == LevelOutcome.Solved ? pass.LastDeliveryTick : level.MaxTicks;
+
+                // Once solved there is nothing left to watch — trim the idle trailing ticks so
+                // playback ends when the goal is met (keeps one frame past the last delivery).
+                IReadOnlyList<GridState> states = pass.States;
+                if (outcome == LevelOutcome.Solved)
+                {
+                    int keep = Math.Min(pass.States.Count, finalTick + 2);
+                    states = pass.States.GetRange(0, keep);
+                }
+
                 return SimulationResult.Completed(
-                    outcome, pass.States, new SimulationStats(finalTick, footprint, passIndex + 1));
+                    outcome, states, new SimulationStats(finalTick, footprint, passIndex + 1));
             }
 
             if (!seenHashes.Add(pass.Injections.Hash()))

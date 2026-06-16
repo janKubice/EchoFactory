@@ -64,4 +64,15 @@ public class CampaignFeatureTests
 
         Assert.Equal(0, StarRating.Compute(result, new LevelPar { Ticks = 7, Footprint = 4 }));
     }
+
+    [Fact]
+    public void SolvedLevel_StopsEarly_TrimmingIdleTicks()
+    {
+        // The line solves at tick 7 regardless of a generous tick budget.
+        var result = SimulationCompiler.Compile(TestData.LineLevel(maxTicks: 50), TestData.LineSolution());
+
+        Assert.Equal(LevelOutcome.Solved, result.Outcome);
+        Assert.Equal(7, result.Stats.FinalTick);
+        Assert.Equal(result.Stats.FinalTick + 2, result.States.Count); // trimmed, not 51 states
+    }
 }

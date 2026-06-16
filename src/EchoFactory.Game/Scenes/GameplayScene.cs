@@ -40,6 +40,10 @@ internal sealed class GameplayScene : IScene
     private readonly GridView _grid;
     private readonly Rectangle _timeline;
     private readonly Rectangle _compileBtn;
+    private readonly Rectangle _cardRect;
+    private readonly Rectangle _retryBtn;
+    private readonly Rectangle _nextBtn;
+    private readonly Rectangle _levelsBtn;
     private readonly List<(Rectangle Rect, Tool Tool)> _palette = [];
     private readonly string _startInfo;
     private readonly string _goalInfo;
@@ -66,6 +70,14 @@ internal sealed class GameplayScene : IScene
         _grid = new GridView(_level.Grid, playArea);
         _timeline = new Rectangle(40, h - 64, w - 280, 18);
         _compileBtn = new Rectangle(w - 220, h - 132, 180, 48);
+
+        const int cardW = 580;
+        const int cardH = 300;
+        _cardRect = new Rectangle((w - cardW) / 2, (h - cardH) / 2, cardW, cardH);
+        int by = _cardRect.Bottom - 72;
+        _retryBtn = new Rectangle(_cardRect.X + 30, by, 160, 48);
+        _nextBtn = new Rectangle(_cardRect.X + 210, by, 160, 48);
+        _levelsBtn = new Rectangle(_cardRect.X + 390, by, 160, 48);
 
         int px = 40;
         foreach (var (tool, _) in Tools)
@@ -183,6 +195,28 @@ internal sealed class GameplayScene : IScene
     {
         int last = (_result?.States.Count ?? 1) - 1;
 
+        // Results card buttons (shown once the playback has finished).
+        if (_playTime >= last && input.LeftClick && _result is { } res)
+        {
+            if (_retryBtn.Contains(Point(_mouse)))
+            {
+                _mode = PlayMode.Build;
+                return;
+            }
+
+            if (_levelsBtn.Contains(Point(_mouse)))
+            {
+                _scenes.Switch(new LevelSelectScene(_scenes));
+                return;
+            }
+
+            if (res.Outcome == LevelOutcome.Solved && NextLevelId() is { } next && _nextBtn.Contains(Point(_mouse)))
+            {
+                _scenes.Switch(new GameplayScene(_scenes, next));
+                return;
+            }
+        }
+
         if (input.KeyPressed(Keys.Space)) _playing = !_playing;
         if (input.KeyPressed(Keys.B)) _mode = PlayMode.Build;
 
@@ -259,9 +293,30 @@ internal sealed class GameplayScene : IScene
         if (_mode == PlayMode.Build && _grid.TryScreenToCell(_mouse, out GridPoint hover))
         {
             Vector2 tl = _grid.CellTopLeft(hover);
-            Color c = _editor.CanPlace(hover) ? Palette.Accent : Palette.Paradox;
-            r.RectOutline(tl.X + 1, tl.Y + 1, _grid.CellSize - 2, _grid.CellSize - 2, 2, c);
+            bool ok = _editor.CanPlace(hover) && CanPlaceTool(_tool, hover);
+            r.RectOutline(tl.X + 1, tl.Y + 1, _grid.CellSize - 2, _grid.CellSize - 2, 2, ok ? Palette.Accent : Palette.Paradox);
+            if (ok)
+            {
+                DrawGhost(r, hover);
+            }
         }
+    }
+
+    private void DrawGhost(Renderer r, GridPoint cell)
+    {
+        float s = _grid.CellSize;
+        Color col = ToolColor(_tool);
+        if (_tool == Tool.Belt)
+        {
+            DrawBeltChevrons(r, _grid.CellCenter(cell), _dir, new Color(col.R, col.G, col.B, (byte)120));
+            return;
+        }
+
+        Vector2 tl = _grid.CellTopLeft(cell);
+        float pad = s * 0.14f;
+        r.RectOutline(tl.X + pad, tl.Y + pad, s - (2 * pad), s - (2 * pad), 2, col);
+        r.TextCenteredFit(ToolIcon(_tool), _grid.CellCenter(cell), s * 0.4f, s * 0.4f, col);
+        DrawOutArrow(r, cell, _dir, col);
     }
 
     private void DrawFixedNodes(Renderer r)
@@ -359,18 +414,26 @@ internal sealed class GameplayScene : IScene
         }
     }
 
-    private void DrawBelt(Renderer r, GridPoint cell, Direction dir)
-    {
-        Vector2 c = _grid.CellCenter(cell);
-        Vector2 d = Offset(dir);
-        float half = _grid.CellSize * 0.4f;
-        r.Line(c - (d * half), c + (d * half), MathF.Max(2f, _grid.CellSize * 0.08f), Palette.Belt);
+    private void DrawBelt(Renderer r, GridPoint cell, Direction dir) => DrawBeltChevrons(r, _grid.CellCenter(cell), dir, Palette.Belt);
 
-        Vector2 head = c + (d * half);
+    private void DrawBeltChevrons(Renderer r, Vector2 c, Direction dir, Color color)
+    {
+        Vector2 d = Offset(dir);
         Vector2 perp = new(-d.Y, d.X);
-        float a = _grid.CellSize * 0.15f;
-        r.Line(head, head - (d * a) + (perp * a), 3f, Palette.Belt);
-        r.Line(head, head - (d * a) - (perp * a), 3f, Palette.Belt);
+        float s = _grid.CellSize;
+
+        // faint track + three flowing chevrons pointing along the belt
+        r.Line(c - (d * (s * 0.46f)), c + (d * (s * 0.46f)), MathF.Max(2f, s * 0.045f), Palette.GridLine);
+
+        float chev = s * 0.13f;
+        float thick = MathF.Max(3f, s * 0.055f);
+        for (int i = -1; i <= 1; i++)
+        {
+            Vector2 mid = c + (d * (i * s * 0.24f));
+            Vector2 tip = mid + (d * chev);
+            r.Line(tip, mid - (perp * chev), thick, color);
+            r.Line(tip, mid + (perp * chev), thick, color);
+        }
     }
 
     private void DrawOutArrow(Renderer r, GridPoint cell, Direction dir, Color color)
@@ -480,7 +543,92 @@ internal sealed class GameplayScene : IScene
 
         r.Text("SPACE PLAY/PAUSE   LEFT/RIGHT STEP   DRAG TIMELINE   B EDIT   ESC BACK",
             new Vector2(40, r.Height - 28), 2f, Palette.TextDim);
+
+        if (_playTime >= last)
+        {
+            DrawResultsCard(r);
+        }
     }
+
+    private void DrawResultsCard(Renderer r)
+    {
+        if (_result is not { } res)
+        {
+            return;
+        }
+
+        r.FillRect(_cardRect.X, _cardRect.Y, _cardRect.Width, _cardRect.Height, Palette.Panel);
+        Color accent = res.Outcome switch
+        {
+            LevelOutcome.Solved => Palette.Solved,
+            LevelOutcome.Paradox => Palette.Paradox,
+            _ => Palette.Failed,
+        };
+        r.RectOutline(_cardRect.X, _cardRect.Y, _cardRect.Width, _cardRect.Height, 3, accent);
+
+        string title = res.Outcome switch
+        {
+            LevelOutcome.Solved => "LEVEL SOLVED",
+            LevelOutcome.Paradox => "PARADOX",
+            _ => "NOT SOLVED",
+        };
+        r.TextCentered(title, new Vector2(_cardRect.Center.X, _cardRect.Y + 52), 6f, accent);
+
+        if (res.Outcome == LevelOutcome.Solved)
+        {
+            int stars = StarRating.Compute(res, _level.Par);
+            r.TextCentered("STARS " + new string('*', stars) + new string('.', 3 - stars), new Vector2(_cardRect.Center.X, _cardRect.Y + 118), 4f, Palette.Item);
+            r.TextCentered("TICKS " + res.Stats.FinalTick + "       NODES " + res.Stats.Footprint, new Vector2(_cardRect.Center.X, _cardRect.Y + 158), 3f, Palette.Text);
+        }
+        else if (res.Error is { } e)
+        {
+            r.TextCenteredFit(e.Message.ToUpperInvariant(), new Vector2(_cardRect.Center.X, _cardRect.Y + 130), _cardRect.Width - 60, 30, Palette.TextDim);
+        }
+        else
+        {
+            r.TextCentered("WRONG OR MISSING OUTPUT AT THE SINK", new Vector2(_cardRect.Center.X, _cardRect.Y + 130), 2.6f, Palette.TextDim);
+        }
+
+        new UiButton(_retryBtn, "RETRY").Draw(r, _mouse);
+        new UiButton(_levelsBtn, "LEVELS").Draw(r, _mouse);
+        if (res.Outcome == LevelOutcome.Solved && NextLevelId() is not null)
+        {
+            new UiButton(_nextBtn, "NEXT >").Draw(r, _mouse);
+        }
+    }
+
+    private string? NextLevelId()
+    {
+        var ids = _scenes.Catalog.LevelIds;
+        for (int i = 0; i < ids.Count - 1; i++)
+        {
+            if (ids[i] == _levelId)
+            {
+                return ids[i + 1];
+            }
+        }
+
+        return null;
+    }
+
+    private static Color ToolColor(Tool tool) => tool switch
+    {
+        Tool.MathAdd or Tool.MathMul => Palette.Math,
+        Tool.Splitter => Palette.Splitter,
+        Tool.Portal => Palette.Portal,
+        Tool.Filter => Palette.Filter,
+        _ => Palette.Belt,
+    };
+
+    private static string ToolIcon(Tool tool) => tool switch
+    {
+        Tool.MathAdd => "+",
+        Tool.MathMul => "X",
+        Tool.Splitter => "Y",
+        Tool.Portal => "@",
+        Tool.Filter => "F",
+        _ => ">",
+    };
 
     // ---- helpers ----
 
