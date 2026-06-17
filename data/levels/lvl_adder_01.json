@@ -2,6 +2,8 @@
   "schema_version": 1,
   "id": "lvl_adder_01",
   "name": "Sum It Up",
+  "order": 6,
+  "description": "Feed both inputs into an adder (tool 2) to make their sum.",
   "grid": { "width": 5, "height": 3 },
   "max_ticks": 12,
   "par": { "ticks": 5, "footprint": 5 },

@@ -39,6 +39,9 @@ public static class LevelWriter
         {
             SchemaVersion = SchemaVersions.Level,
             Id = level.Id,
+            Name = string.IsNullOrEmpty(level.Name) ? null : level.Name,
+            Description = string.IsNullOrEmpty(level.Description) ? null : level.Description,
+            Order = level.Order,
             Grid = new GridDto { Width = level.Grid.Width, Height = level.Grid.Height },
             MaxTicks = level.MaxTicks,
             MaxTemporalPasses = level.MaxTemporalPasses,

@@ -47,6 +47,15 @@ public sealed class LevelDefinition
 {
     public required string Id { get; init; }
 
+    /// <summary>Display name (defaults to the id).</summary>
+    public string Name { get; init; } = "";
+
+    /// <summary>Short objective / hint shown to the player.</summary>
+    public string Description { get; init; } = "";
+
+    /// <summary>Campaign ordering (lower = earlier). Unordered levels sort last.</summary>
+    public int Order { get; init; } = 1000;
+
     public required GridSize Grid { get; init; }
 
     public required int MaxTicks { get; init; }

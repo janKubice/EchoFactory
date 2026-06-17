@@ -84,6 +84,9 @@ public static class LevelLoader
         return new LevelDefinition
         {
             Id = id,
+            Name = dto.Name ?? string.Empty,
+            Description = dto.Description ?? string.Empty,
+            Order = dto.Order,
             Grid = new GridSize(dto.Grid.Width, dto.Grid.Height),
             MaxTicks = dto.MaxTicks,
             MaxTemporalPasses = dto.MaxTemporalPasses,

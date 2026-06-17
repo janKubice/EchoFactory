@@ -2,6 +2,8 @@
   "schema_version": 1,
   "id": "lvl_timed_01",
   "name": "On Schedule",
+  "order": 10,
+  "description": "Strict timing: each value must arrive on its exact tick (5, 6, 7).",
   "grid": { "width": 6, "height": 3 },
   "max_ticks": 20,
   "strict_timing": true,

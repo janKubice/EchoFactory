@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "tut_02_turn",
+  "name": "Around the Corner",
+  "order": 1,
+  "description": "Belts can turn. Press R to rotate, then route the value to the sink.",
+  "grid": { "width": 3, "height": 3 },
+  "max_ticks": 15,
+  "par": { "ticks": 4, "footprint": 3 },
+  "inventory": {
+    "mode": "whitelist",
+    "allowed": ["node_belt"],
+    "limits": { "node_belt": 4 }
+  },
+  "fixed_nodes": [
+    { "id": "gen", "type": "generator", "position": { "x": 0, "y": 0 }, "direction": "right", "schedule": [ { "tick": 0, "value": 3 } ] },
+    { "id": "sink", "type": "sink", "position": { "x": 2, "y": 2 }, "expected": [3] }
+  ]
+}

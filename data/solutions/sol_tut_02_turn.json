@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "level_id": "tut_02_turn",
+  "placed_nodes": [
+    { "node": "node_belt", "position": { "x": 1, "y": 0 }, "direction": "right" },
+    { "node": "node_belt", "position": { "x": 2, "y": 0 }, "direction": "down" },
+    { "node": "node_belt", "position": { "x": 2, "y": 1 }, "direction": "down" }
+  ]
+}

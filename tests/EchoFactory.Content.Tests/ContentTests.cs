@@ -128,6 +128,21 @@ public class ContentTests
     }
 
     [Fact]
+    public void LevelLoader_ParsesMetadata()
+    {
+        const string json = """
+        { "schema_version": 1, "id": "lvl_x", "name": "Hello", "order": 3, "description": "do it",
+          "grid": { "width": 3, "height": 1 }, "max_ticks": 5, "fixed_nodes": [] }
+        """;
+
+        LevelDefinition level = LevelLoader.Parse(json, "test");
+
+        Assert.Equal("Hello", level.Name);
+        Assert.Equal("do it", level.Description);
+        Assert.Equal(3, level.Order);
+    }
+
+    [Fact]
     public void LevelLoader_ParsesInventory()
     {
         const string json = """

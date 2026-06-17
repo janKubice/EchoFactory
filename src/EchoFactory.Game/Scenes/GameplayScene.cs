@@ -560,19 +560,25 @@ internal sealed class GameplayScene : IScene
 
     private void DrawTopBar(Renderer r)
     {
+        string name = string.IsNullOrEmpty(_level.Name) ? _levelId : _level.Name;
         r.FillRect(0, 0, r.Width, 56, Palette.Panel);
-        r.Text(_levelId.ToUpperInvariant(), new Vector2(40, 18), 3.5f, Palette.Text);
+        r.Text(name.ToUpperInvariant(), new Vector2(40, 18), 3.5f, Palette.Text);
         string mode = _mode == PlayMode.Build ? "BUILD" : "PLAYBACK";
         r.TextCentered("MODE " + mode, new Vector2(r.Width / 2f, 28), 3f, Palette.Accent);
         r.Text("NODES " + _editor.Count, new Vector2(r.Width - 200, 22), 3f, Palette.TextDim);
 
-        // Objective strip
+        // Objective strip: hint + start/goal
         r.FillRect(0, 56, r.Width, 48, Palette.Background);
-        r.Text("START", new Vector2(40, 70), 2.4f, Palette.Generator);
-        r.Text(_startInfo, new Vector2(120, 68), 3.2f, Palette.Item);
-        float gx = r.Width / 2f + 40;
-        r.Text("GOAL", new Vector2(gx, 70), 2.4f, Palette.Sink);
-        r.Text(_goalInfo, new Vector2(gx + 70, 68), 3.2f, Palette.Item);
+        if (!string.IsNullOrEmpty(_level.Description))
+        {
+            r.Text(_level.Description.ToUpperInvariant(), new Vector2(40, 60), 2.2f, Palette.Accent);
+        }
+
+        r.Text("START", new Vector2(40, 84), 2.2f, Palette.Generator);
+        r.Text(_startInfo, new Vector2(112, 82), 2.8f, Palette.Item);
+        float gx = (r.Width / 2f) + 40;
+        r.Text("GOAL", new Vector2(gx, 84), 2.2f, Palette.Sink);
+        r.Text(_goalInfo, new Vector2(gx + 64, 82), 2.8f, Palette.Item);
     }
 
     private void DrawBuildHud(Renderer r)

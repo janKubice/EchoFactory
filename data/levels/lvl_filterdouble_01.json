@@ -2,6 +2,8 @@
   "schema_version": 1,
   "id": "lvl_filterdouble_01",
   "name": "Big Ones Only",
+  "order": 9,
+  "description": "Filter the small values out, then multiply the survivors.",
   "grid": { "width": 7, "height": 3 },
   "max_ticks": 20,
   "par": { "ticks": 10, "footprint": 5 },
