@@ -104,4 +104,7 @@ internal sealed class PlacedNodeDto
     public int? TimeOffset { get; set; }
     public int? Constant { get; set; }
     public string? Comparison { get; set; }
+    public string? OutMatch { get; set; }
+    public string? OutElse { get; set; }
+    public int? Initial { get; set; }
 }

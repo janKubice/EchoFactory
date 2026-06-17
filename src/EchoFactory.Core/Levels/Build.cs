@@ -25,6 +25,12 @@ public sealed class PlacedNode
     /// <summary>Set when Kind == Filter.</summary>
     public FilterConfig? Filter { get; init; }
 
+    /// <summary>Set when Kind == Router.</summary>
+    public RouterConfig? Router { get; init; }
+
+    /// <summary>Set when Kind == Accumulator.</summary>
+    public AccumulatorConfig? Accumulator { get; init; }
+
     public static PlacedNode Belt(GridPoint position, Direction direction) =>
         new() { Kind = NodeKind.Belt, Position = position, Direction = direction };
 
@@ -39,6 +45,12 @@ public sealed class PlacedNode
 
     public static PlacedNode Gate(GridPoint position, FilterConfig config) =>
         new() { Kind = NodeKind.Filter, Position = position, Filter = config };
+
+    public static PlacedNode Route(GridPoint position, RouterConfig config) =>
+        new() { Kind = NodeKind.Router, Position = position, Router = config };
+
+    public static PlacedNode Accumulate(GridPoint position, AccumulatorConfig config) =>
+        new() { Kind = NodeKind.Accumulator, Position = position, Accumulator = config };
 }
 
 /// <summary>

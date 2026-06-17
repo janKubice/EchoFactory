@@ -15,6 +15,8 @@ public class WriterTests
         registry.Add(NodeRegistry.ParseDefinition("""{ "schema_version":1, "id":"node_splitter", "type":"splitter" }""", "s"));
         registry.Add(NodeRegistry.ParseDefinition("""{ "schema_version":1, "id":"node_portal", "type":"portal" }""", "p"));
         registry.Add(NodeRegistry.ParseDefinition("""{ "schema_version":1, "id":"node_filter", "type":"filter" }""", "f"));
+        registry.Add(NodeRegistry.ParseDefinition("""{ "schema_version":1, "id":"node_router", "type":"router" }""", "r"));
+        registry.Add(NodeRegistry.ParseDefinition("""{ "schema_version":1, "id":"node_accumulator", "type":"accumulator" }""", "a"));
 
         var build = new Build
         {
@@ -25,6 +27,8 @@ public class WriterTests
                 PlacedNode.Split(new GridPoint(3, 1), new SplitterConfig { OutputA = Direction.Up, OutputB = Direction.Down }),
                 PlacedNode.TimePortal(new GridPoint(4, 1), new PortalConfig { TimeOffset = 2, Output = Direction.Down }),
                 PlacedNode.Gate(new GridPoint(5, 1), new FilterConfig { Comparison = Comparison.Ge, Constant = 3, Output = Direction.Right }),
+                PlacedNode.Route(new GridPoint(6, 1), new RouterConfig { Comparison = Comparison.Lt, Constant = 5, OutMatch = Direction.Up, OutElse = Direction.Down }),
+                PlacedNode.Accumulate(new GridPoint(7, 1), new AccumulatorConfig { ReleaseWhen = Comparison.Ge, Constant = 10, Output = Direction.Right, Initial = 2 }),
             ],
         };
 
@@ -33,7 +37,16 @@ public class WriterTests
         string json2 = SolutionWriter.Write("lvl", parsed.Build);
 
         Assert.Equal(json1, json2);
-        Assert.Equal(5, parsed.Build.Footprint);
+        Assert.Equal(7, parsed.Build.Footprint);
+
+        var router = parsed.Build.Nodes[5].Router!;
+        Assert.Equal(Comparison.Lt, router.Comparison);
+        Assert.Equal(Direction.Up, router.OutMatch);
+        Assert.Equal(Direction.Down, router.OutElse);
+
+        var acc = parsed.Build.Nodes[6].Accumulator!;
+        Assert.Equal(10, acc.Constant);
+        Assert.Equal(2, acc.Initial);
     }
 
     [Fact]

@@ -223,6 +223,10 @@ internal static class NodeFactory
                 ?? throw new ArgumentException($"Portal placement at {p.Position} has no PortalConfig")),
             NodeKind.Filter => new FilterNode(id, p.Position, p.Filter
                 ?? throw new ArgumentException($"Filter placement at {p.Position} has no FilterConfig")),
+            NodeKind.Router => new RouterNode(id, p.Position, p.Router
+                ?? throw new ArgumentException($"Router placement at {p.Position} has no RouterConfig")),
+            NodeKind.Accumulator => new AccumulatorNode(id, p.Position, p.Accumulator
+                ?? throw new ArgumentException($"Accumulator placement at {p.Position} has no AccumulatorConfig")),
             _ => throw new ArgumentException($"Unsupported placed node kind: {p.Kind}"),
         };
     }

@@ -54,6 +54,8 @@ internal static class Tokens
         "splitter" => NodeKind.Splitter,
         "portal" => NodeKind.Portal,
         "filter" => NodeKind.Filter,
+        "router" => NodeKind.Router,
+        "accumulator" => NodeKind.Accumulator,
         _ => throw new ContentException($"{where}: unknown node type '{s}'"),
     };
 
