@@ -66,6 +66,8 @@ Tři pilíře (detail v [`docs/design.md`](./docs/design.md)):
 | [`docs/meta-services.md`](./docs/meta-services.md) | Steam, žebříčky, Workshop, anti-cheat |
 | [`docs/testing.md`](./docs/testing.md) | Strategie testů, determinismus, CI |
 | [`docs/glossary.md`](./docs/glossary.md) | Sdílený slovník pojmů (CZ ↔ EN) |
+| [`docs/playtest-feedback.md`](./docs/playtest-feedback.md) | Feedback z hraní + frontend/UX backlog |
+| [`docs/handoff.md`](./docs/handoff.md) | Předání dalšímu agentovi (stav, architektura, workflow) |
 | [`docs/adr/`](./docs/adr/) | Architecture Decision Records — proč jsme se rozhodli jak |
 | [`CONTRIBUTING.md`](./CONTRIBUTING.md) | Konvence, git workflow, jak přispívat |
 

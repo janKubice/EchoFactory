@@ -286,7 +286,15 @@ rozhraním, manuální testy na Steamu.
 
 # Backlog (zaparkované nápady)
 
-Prohloubení enginu/obsahu odložené ve prospěch frontendu — vrátit se k nim:
+> **Frontend/UX backlog z playtestů → [docs/playtest-feedback.md](./docs/playtest-feedback.md).**
+> **Předání dalšímu agentovi → [docs/handoff.md](./docs/handoff.md).**
+
+Z posledního velkého playtestu (2026-06-16) vyplynula priorita: **klikací
+konfigurace uzlů**, **plný editor (jméno/inventář/max ticks/grid/čísla>9/paleta)**,
+**kampaně + scroll**, a velký design směr **procesní smyčky** (router/podmíněný
+splitter + akumulátor + lepší vysvětlení portálu) — detail ve feedback dokumentu.
+
+Prohloubení enginu/obsahu (starší parkoviště):
 
 - ✅ **Strict-timing cíle** — HOTOVO: sink s `expected_ticks` + `strict_timing`;
   kompilátor ověřuje přesné tiky doručení. Level `lvl_timed_01`.
