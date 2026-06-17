@@ -1,3 +1,4 @@
+using EchoFactory.Content;
 using EchoFactory.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -56,6 +57,7 @@ internal sealed class GameplayScene : IScene
     private Comparison _filterComparison = Comparison.Ge;
     private PlayMode _mode = PlayMode.Build;
     private SimulationResult? _result;
+    private SubmitOutcome? _submit;
     private float _playTime;
     private bool _playing;
     private int _lastSoundTick = -1;
@@ -335,6 +337,14 @@ internal sealed class GameplayScene : IScene
         _playing = true;
         _lastSoundTick = -1;
         _resultSoundPlayed = false;
+
+        _submit = null;
+        if (_result.Outcome == LevelOutcome.Solved)
+        {
+            int stars = StarRating.Compute(_result, _level.Par);
+            _submit = _scenes.Leaderboard.Submit(_levelId, _result.Stats.FinalTick, _result.Stats.Footprint, stars);
+        }
+
         _scenes.Play(Sfx.Compile);
     }
 
@@ -673,8 +683,18 @@ internal sealed class GameplayScene : IScene
         if (res.Outcome == LevelOutcome.Solved)
         {
             int stars = StarRating.Compute(res, _level.Par);
-            r.TextCentered("STARS " + new string('*', stars) + new string('.', 3 - stars), new Vector2(_cardRect.Center.X, _cardRect.Y + 118), 4f, Palette.Item);
-            r.TextCentered("TICKS " + res.Stats.FinalTick + "       NODES " + res.Stats.Footprint, new Vector2(_cardRect.Center.X, _cardRect.Y + 158), 3f, Palette.Text);
+            r.TextCentered("STARS " + new string('*', stars) + new string('.', 3 - stars), new Vector2(_cardRect.Center.X, _cardRect.Y + 104), 4f, Palette.Item);
+            r.TextCentered("TICKS " + res.Stats.FinalTick + "       NODES " + res.Stats.Footprint, new Vector2(_cardRect.Center.X, _cardRect.Y + 142), 3f, Palette.Text);
+
+            if (_submit is { } sub)
+            {
+                r.TextCentered("BEST  " + (sub.Record.BestTicks?.ToString() ?? "-") + " TICKS / " + (sub.Record.BestFootprint?.ToString() ?? "-") + " NODES",
+                    new Vector2(_cardRect.Center.X, _cardRect.Y + 174), 2.6f, Palette.TextDim);
+                if (sub.NewTickRecord || sub.NewFootprintRecord)
+                {
+                    r.TextCentered("NEW RECORD!", new Vector2(_cardRect.Center.X, _cardRect.Y + 200), 3f, Palette.Accent);
+                }
+            }
         }
         else if (res.Error is { } e)
         {

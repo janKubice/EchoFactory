@@ -14,7 +14,7 @@ hromada UI práce.
 
 | | Milníky | Stav |
 |---|---|---|
-| **DONE** | engine + **frontend** 🎮 · inventář · strict/filter · anti-cheat · audio/nastavení/undo-redo · **M6 editor levelů (v1)** | ✅ 51 testů |
+| **DONE** | engine + **frontend** 🎮 · inventář · strict/filter · anti-cheat · audio/nastavení/undo-redo · **editor (v1)** · **lokální žebříčky** | ✅ 53 testů |
 | **NOW** | Onboarding/tutoriály + dolaďování editoru | 🔜 |
 | **NEXT** | M7 Steam (žebříčky, Workshop) | navrženo |
 | **LATER** | M8 release (přístupnost, polish) | navrženo |

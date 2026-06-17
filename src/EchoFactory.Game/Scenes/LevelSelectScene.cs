@@ -56,9 +56,14 @@ internal sealed class LevelSelectScene : IScene
     {
         r.TextCentered("SELECT LEVEL", new Vector2(r.Width / 2f, 70f), 6f, Palette.Text);
         _back.Draw(r, _mouse);
-        foreach (var (button, _) in _levels)
+        foreach (var (button, levelId) in _levels)
         {
             button.Draw(r, _mouse);
+            int stars = _scenes.Leaderboard.Get(levelId)?.BestStars ?? 0;
+            if (stars > 0)
+            {
+                r.Text(new string('*', stars), new Vector2(button.Rect.Right + 20, button.Rect.Y + 14), 3.2f, Palette.Solved);
+            }
         }
     }
 }

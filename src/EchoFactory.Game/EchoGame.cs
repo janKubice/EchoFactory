@@ -1,3 +1,4 @@
+using EchoFactory.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -6,9 +7,12 @@ namespace EchoFactory.Game;
 /// <summary>MonoGame host: owns the renderer, input and the active scene.</summary>
 public sealed class EchoGame : Microsoft.Xna.Framework.Game
 {
+    private static string LeaderboardPath => Path.Combine(AppContext.BaseDirectory, "echofactory-leaderboard.json");
+
     private readonly GraphicsDeviceManager _graphics;
     private readonly InputState _input = new();
     private readonly GameSettings _settings = SettingsStore.Load();
+    private readonly Leaderboard _leaderboard = LeaderboardStore.Load(LeaderboardPath);
     private Renderer _renderer = null!;
     private AudioManager _audio = null!;
     private SceneManager? _scenes;
@@ -39,6 +43,7 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
                 Catalog = catalog,
                 Settings = _settings,
                 Audio = _audio,
+                Leaderboard = _leaderboard,
                 Quit = Exit,
                 ScreenW = GraphicsDevice.Viewport.Width,
                 ScreenH = GraphicsDevice.Viewport.Height,
@@ -86,6 +91,7 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
     protected override void UnloadContent()
     {
         SettingsStore.Save(_settings);
+        LeaderboardStore.Save(LeaderboardPath, _leaderboard);
         _renderer?.Dispose();
         _audio?.Dispose();
         base.UnloadContent();

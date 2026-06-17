@@ -1,3 +1,5 @@
+using EchoFactory.Content;
+
 namespace EchoFactory.Game;
 
 /// <summary>A screen of the game (menu, level select, gameplay).</summary>
@@ -18,6 +20,8 @@ internal sealed class SceneManager
     public required GameSettings Settings { get; init; }
 
     public required AudioManager Audio { get; init; }
+
+    public required Leaderboard Leaderboard { get; init; }
 
     public required Action Quit { get; init; }
 
