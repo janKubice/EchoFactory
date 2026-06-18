@@ -75,6 +75,7 @@ public sealed class NodeRegistry
             Name = dto.Name ?? id,
             Kind = kind,
             Category = dto.Category ?? string.Empty,
+            Description = dto.Description ?? string.Empty,
             Operation = operation,
             TickCost = dto.TickCost,
             Visual = new NodeVisual

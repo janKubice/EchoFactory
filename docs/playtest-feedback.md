@@ -76,12 +76,17 @@ objevné) → **předělat na klikací UI**.
 ## G. Konfigurace uzlů — celkově špatná (priorita!)
 Hráč nerozumí ovládání uzlů. **Klíčový úkol: klik na uzel → otevře se panel
 specifický pro ten uzel** (místo globálních kláves +/-/Tab).
-- 🔴 **„Adjust" (+/-) je nesrozumitelný** a má špatný keybind. Zrušit/nahradit
-  klikacím panelem konfigurace.
-- 🔴 **Math (suma) — kde jsou vstupy?** — nový hráč neví, že math uzel bere
-  operandy ze své buňky (buffer 2 operandů přes tiky). Potřeba **vizualizovat
-  vstupy/výstup** a vysvětlit. Zvážit explicitní vstupní porty.
-- 🔴 **Portál — hráč vůbec nechápe, co dělá** (viz dále, sekce H — zásadní).
+- 🟢 **Klikací config panel** — HOTOVO: klik na umístěný uzel otevře panel s
+  tlačítky pro jeho typ (směr / konstanta / porovnání / výstupy / start / init +
+  DELETE), vybraná buňka se zvýrazní, Esc zruší. Umisťování = drag prázdných
+  buněk (klik na uzel ho už nepřepíše). (`GameplayScene.PanelControls`.)
+  ⚠️ neověřené lokálně — proklikat.
+- 🟢 **Help overlay + kodex uzlů** — HOTOVO: H / „? HELP" ukáže cíl levelu a
+  vysvětlení každého uzlu (z JSON `description`). Pokrývá i math/portál slovně.
+- 🟡 **Math (suma) — kde jsou vstupy?** — slovně vysvětleno v kodexu; pořád chybí
+  **vizualizace vstupů/portů přímo na gridu** (explicitní vstupní porty).
+- 🟡 **Portál — vysvětlení** — kodex ho popisuje; chybí **vizuální** in↔out
+  „kometa" na gridu (sekce H).
 
 ## H. Design direction: smyčky, portál a „mega komplexní" puzzly  ⭐
 Nejdůležitější design feedback. Hráč má jiný (bohatší) mentální model, než co je
@@ -114,8 +119,9 @@ teď implementované — **přečíst pozorně**.
 - 🟢 **Prostorové smyčky bez času** — DEMO: `lvl_loop_counter_01` (jeden item
   krouží belt-smyčkou, +1 za kolo, router ho drží ve smyčce dokud nedosáhne cíle).
   Belt-smyčka + router + math = procesní loop bez portálu.
-- 🔴 **Portál — lepší vysvětlení/tutoriál** — pořád TODO (vizualizace in↔out,
-  „kometa" dráhy, tutoriálový level). To je druhá půlka hráčova „obojí".
+- 🟡 **Portál — lepší vysvětlení/tutoriál** — help overlay (kodex) ho teď
+  **slovně** vysvětluje; zbývá **vizualizace in↔out** („kometa" dráhy na gridu)
+  + dedikovaný tutoriálový level. Druhá půlka hráčova „obojí".
 - 🟡 **Levely kolem akumulačních smyček** — `lvl_tally_01` (sečti stream do N).
   Přidat těžší: kombinace router+akumulátor ve smyčce, sběr N hodnot a podmíněný
   výdej.
@@ -128,9 +134,10 @@ teď implementované — **přečíst pozorně**.
 ---
 
 ## Doporučené pořadí (návrh)
-1. **Konfigurace uzlů klikem (panel)** + zřetelný splitter/math vstup-výstup (G).
+1. 🟢 **Konfigurace uzlů klikem (panel)** + help overlay/kodex — HOTOVO (G).
+   Zbývá vizualizace vstupů/portů a zatočené pásy na gridu.
 2. **Editor → klikací UI**: jméno, max ticks, inventář, velikost gridu, číselník,
-   test tlačítko, paleta (C, D).
+   test tlačítko, paleta (C, D). ← **další na řadě**
 3. **Kampaně + scroll** ve výběru (E) — vč. pole `campaign` v levelu a editoru.
 4. **Router/akumulátor + smyčkové levely** (H) — po dohodě s hráčem.
 5. **Zatočené pásy + hezčí tlačítka + animované pozadí menu** (A, F).

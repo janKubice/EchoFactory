@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_filter",
   "name": "Filter",
+  "description": "Passes an item only if its value meets the condition; otherwise the item is destroyed.",
   "type": "filter",
   "category": "Logic",
   "tick_cost": 1,

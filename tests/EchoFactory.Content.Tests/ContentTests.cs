@@ -23,6 +23,20 @@ public class ContentTests
     }
 
     [Fact]
+    public void ParsesNodeDescription_ForCodex()
+    {
+        const string json = """
+        { "schema_version": 1, "id": "node_router", "name": "Router", "type": "router",
+          "description": "Routes by a condition." }
+        """;
+
+        NodeDefinition def = NodeRegistry.ParseDefinition(json, "test");
+
+        Assert.Equal(NodeKind.Router, def.Kind);
+        Assert.Equal("Routes by a condition.", def.Description);
+    }
+
+    [Fact]
     public void ParsesLevel_WithGeneratorAndSink()
     {
         const string json = """

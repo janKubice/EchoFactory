@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "level_id": "lvl_route_01",
+  "placed_nodes": [
+    { "node": "node_router", "position": { "x": 1, "y": 1 }, "comparison": "ge", "constant": 3, "out_match": "down", "out_else": "right" }
+  ]
+}

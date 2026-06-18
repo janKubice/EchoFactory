@@ -26,6 +26,9 @@ public sealed class NodeDefinition
 
     public string Category { get; init; } = "";
 
+    /// <summary>Plain-language explanation for the in-game node codex / help overlay.</summary>
+    public string Description { get; init; } = "";
+
     /// <summary>Set when <see cref="Kind"/> is <see cref="NodeKind.Math"/>.</summary>
     public MathOperation? Operation { get; init; }
 

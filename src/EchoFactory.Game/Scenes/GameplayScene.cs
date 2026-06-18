@@ -46,6 +46,7 @@ internal sealed class GameplayScene : IScene
     private readonly Rectangle _timeline;
     private readonly Rectangle _compileBtn;
     private readonly Rectangle _panelRect;
+    private readonly Rectangle _helpBtn;
     private readonly Rectangle _cardRect;
     private readonly Rectangle _retryBtn;
     private readonly Rectangle _nextBtn;
@@ -66,6 +67,7 @@ internal sealed class GameplayScene : IScene
     private Comparison _accComparison = Comparison.Ge;
     private PlayMode _mode = PlayMode.Build;
     private GridPoint? _selected;
+    private bool _showHelp;
     private SimulationResult? _result;
     private SubmitOutcome? _submit;
     private float _playTime;
@@ -93,6 +95,7 @@ internal sealed class GameplayScene : IScene
         _timeline = new Rectangle(40, h - 64, w - 280, 18);
         _compileBtn = new Rectangle(w - 220, h - 132, 180, 48);
         _panelRect = new Rectangle(w - 296, 120, 256, 332);
+        _helpBtn = new Rectangle(w - 150, 12, 110, 32);
 
         const int cardW = 580;
         const int cardH = 300;
@@ -121,6 +124,31 @@ internal sealed class GameplayScene : IScene
     {
         _mouse = input.Mouse;
         bool overGrid = _grid.TryScreenToCell(_mouse, out GridPoint cell);
+
+        // Help overlay is modal: while open it swallows input.
+        if (input.KeyPressed(Keys.H))
+        {
+            _showHelp = !_showHelp;
+            _scenes.Play(Sfx.Click);
+            return;
+        }
+
+        if (_showHelp)
+        {
+            if (input.KeyPressed(Keys.Escape) || input.LeftClick)
+            {
+                _showHelp = false;
+            }
+
+            return;
+        }
+
+        if (input.LeftClick && _helpBtn.Contains(Point(_mouse)))
+        {
+            _showHelp = true;
+            _scenes.Play(Sfx.Click);
+            return;
+        }
 
         if (input.KeyPressed(Keys.Escape))
         {
@@ -454,6 +482,11 @@ internal sealed class GameplayScene : IScene
         }
 
         DrawTopBar(r);
+
+        if (_showHelp)
+        {
+            DrawHelpOverlay(r);
+        }
     }
 
     private void DrawGrid(Renderer r)
@@ -661,7 +694,8 @@ internal sealed class GameplayScene : IScene
         r.Text(name.ToUpperInvariant(), new Vector2(40, 18), 3.5f, Palette.Text);
         string mode = _mode == PlayMode.Build ? "BUILD" : "PLAYBACK";
         r.TextCentered("MODE " + mode, new Vector2(r.Width / 2f, 28), 3f, Palette.Accent);
-        r.Text("NODES " + _editor.Count, new Vector2(r.Width - 200, 22), 3f, Palette.TextDim);
+        r.Text("NODES " + _editor.Count, new Vector2(r.Width - 330, 22), 3f, Palette.TextDim);
+        new UiButton(_helpBtn, "? HELP").Draw(r, _mouse);
 
         // Objective strip: hint + start/goal
         r.FillRect(0, 56, r.Width, 48, Palette.Background);
@@ -868,6 +902,82 @@ internal sealed class GameplayScene : IScene
     }
 
     private static string Num(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    // ---- help overlay (objective + node codex) ----
+
+    private void DrawHelpOverlay(Renderer r)
+    {
+        r.FillRect(0, 0, r.Width, r.Height, new Color((byte)0, (byte)0, (byte)0, (byte)212));
+
+        var panel = new Rectangle(80, 64, r.Width - 160, r.Height - 128);
+        r.FillRect(panel.X, panel.Y, panel.Width, panel.Height, Palette.Panel);
+        r.RectOutline(panel.X, panel.Y, panel.Width, panel.Height, 3, Palette.Accent);
+
+        r.Text("HOW THIS LEVEL WORKS", new Vector2(panel.X + 24, panel.Y + 18), 3.2f, Palette.Accent);
+        r.Text("PRESS H OR CLICK TO CLOSE", new Vector2(panel.Right - 300, panel.Y + 26), 1.9f, Palette.TextDim);
+
+        r.Text("OBJECTIVE", new Vector2(panel.X + 24, panel.Y + 58), 2.3f, Palette.Sink);
+        string objective = string.IsNullOrEmpty(_level.Description) ? "Deliver the required values to the goal." : _level.Description;
+        r.TextCenteredFit(objective, new Vector2(panel.Center.X, panel.Y + 88), panel.Width - 60, 24, Palette.Text);
+
+        r.Text("NODES IN THIS LEVEL", new Vector2(panel.X + 24, panel.Y + 120), 2.3f, Palette.Math);
+
+        var defs = CodexDefs();
+        int top = panel.Y + 148;
+        int avail = (panel.Bottom - 20) - top;
+        int rowH = Math.Clamp(defs.Count == 0 ? avail : avail / defs.Count, 30, 70);
+        float descLeft = panel.X + 74;
+        float descRight = panel.Right - 28;
+        for (int i = 0; i < defs.Count; i++)
+        {
+            NodeDefinition d = defs[i];
+            int y = top + (i * rowH);
+            Color col = NodeDefColor(d.Kind);
+
+            var chip = new Rectangle(panel.X + 24, y + 4, 32, 32);
+            r.FillRect(chip.X, chip.Y, chip.Width, chip.Height, Palette.PanelHi);
+            r.RectOutline(chip.X, chip.Y, chip.Width, chip.Height, 2, col);
+            r.TextCenteredFit(d.Visual.Icon, new Vector2(chip.Center.X, chip.Center.Y), 22, 22, col);
+
+            r.Text(d.Name.ToUpperInvariant(), new Vector2(descLeft, y + 4), 2.1f, col);
+            if (!string.IsNullOrEmpty(d.Description))
+            {
+                r.TextCenteredFit(d.Description, new Vector2((descLeft + descRight) / 2f, y + 24), descRight - descLeft, MathF.Max(11, rowH * 0.34f), Palette.TextDim);
+            }
+        }
+    }
+
+    private List<NodeDefinition> CodexDefs()
+    {
+        var list = new List<NodeDefinition>();
+        foreach (NodeDefinition d in _scenes.Catalog.Registry.Definitions)
+        {
+            bool fixedIo = d.Kind is NodeKind.Generator or NodeKind.Sink;
+            bool allowed = _level.Inventory?.Allows(d.Id) ?? true;
+            if (fixedIo || allowed)
+            {
+                list.Add(d);
+            }
+        }
+
+        return list
+            .OrderBy(static d => d.Kind is NodeKind.Generator ? 0 : d.Kind is NodeKind.Sink ? 1 : 2)
+            .ThenBy(static d => d.Name, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    private static Color NodeDefColor(NodeKind kind) => kind switch
+    {
+        NodeKind.Generator => Palette.Generator,
+        NodeKind.Sink => Palette.Sink,
+        NodeKind.Math => Palette.Math,
+        NodeKind.Splitter => Palette.Splitter,
+        NodeKind.Portal => Palette.Portal,
+        NodeKind.Filter => Palette.Filter,
+        NodeKind.Router => Palette.Router,
+        NodeKind.Accumulator => Palette.Accumulator,
+        _ => Palette.Belt,
+    };
 
     private void DrawPlaybackHud(Renderer r)
     {

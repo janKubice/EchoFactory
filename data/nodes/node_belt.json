@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_belt",
   "name": "Belt",
+  "description": "Moves an item one cell per tick in its direction. Chain belts to route items; bend them around to build a loop.",
   "type": "belt",
   "category": "Logistics",
   "tick_cost": 1,

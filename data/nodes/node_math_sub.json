@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_math_sub",
   "name": "Subtractor",
+  "description": "Subtracts the second value from the first (or a constant). Operand order follows arrival.",
   "type": "math",
   "category": "Math",
   "logic": { "operation": "sub" },

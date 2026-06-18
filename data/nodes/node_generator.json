@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_generator",
   "name": "Generator",
+  "description": "Source: emits scheduled values into the grid. Placed by the level, not by you.",
   "type": "generator",
   "category": "IO",
   "tick_cost": 1,

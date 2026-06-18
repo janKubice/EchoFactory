@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_math_div",
   "name": "Divider",
+  "description": "Divides the first value by the second (or by a constant). Dividing by zero is a paradox.",
   "type": "math",
   "category": "Math",
   "logic": { "operation": "div" },

@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_math_mul",
   "name": "Multiplier",
+  "description": "Multiplies two values (or a value by a constant) and emits the product.",
   "type": "math",
   "category": "Math",
   "logic": { "operation": "mul" },

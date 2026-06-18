@@ -9,6 +9,7 @@ internal sealed class NodeDefinitionDto
     public string? Name { get; set; }
     public string? Type { get; set; }
     public string? Category { get; set; }
+    public string? Description { get; set; }
     public LogicDto? Logic { get; set; }
     public VisualDto? Visual { get; set; }
     public int TickCost { get; set; } = 1;

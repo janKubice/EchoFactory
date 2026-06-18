@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_math_add",
   "name": "Adder",
+  "description": "Adds two arriving values (or one value plus a constant) and emits the sum.",
   "type": "math",
   "category": "Math",
   "logic": { "operation": "add" },

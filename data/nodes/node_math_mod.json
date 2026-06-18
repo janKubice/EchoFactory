@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_math_mod",
   "name": "Modulo",
+  "description": "Emits the remainder of the first value divided by the second (or a constant).",
   "type": "math",
   "category": "Math",
   "logic": { "operation": "mod" },

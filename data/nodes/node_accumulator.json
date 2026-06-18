@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_accumulator",
   "name": "Accumulator",
+  "description": "Adds each incoming value to a running sum, then releases the total once the sum meets its condition and resets. Use it to collect many values in a loop.",
   "type": "accumulator",
   "category": "Logic",
   "tick_cost": 1,

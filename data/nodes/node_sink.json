@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_sink",
   "name": "Sink",
+  "description": "Goal: accepts the required values in order. Placed by the level, not by you.",
   "type": "sink",
   "category": "IO",
   "tick_cost": 1,

@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_splitter",
   "name": "Splitter",
+  "description": "Alternates incoming items between two outputs (A, B, A, B...). Splits one stream into two.",
   "type": "splitter",
   "category": "Logistics",
   "tick_cost": 1,

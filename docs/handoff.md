@@ -17,10 +17,12 @@ Plně **data-driven** (JSON) a postavené na **deterministickém headless enginu
   `janKubice/EchoFactory`. Hlavní/jediná větev (zatím se nemerguje do main).
 - **Komunikace s uživatelem: ČESKY.** Kód, JSON klíče, commity, identifikátory:
   **anglicky** (viz [glossary.md](./glossary.md)).
-- **Stav (2026-06-18):** hratelná hra s 16 levely (kampaň s onboardingem),
+- **Stav (2026-06-18):** hratelná hra se 17 levely (kampaň s onboardingem),
   10 typy uzlů (vč. **router** + **accumulator** pro procesní smyčky), editorem
   levelů, lokálními žebříčky, zvuky, nastavením, undo/redo, anti-cheat.
-  **60 testů**, vše builduje. ~24 commitů.
+  **Klikací config panel uzlů** (klik na uzel → panel) + **in-game help overlay**
+  (H / „? HELP": cíl levelu + kodex uzlů z JSON `description`).
+  **61 testů**, vše builduje. ~27 commitů.
 
 ## 2. Prostředí, build, test, push (DŮLEŽITÉ)
 
@@ -102,7 +104,8 @@ Testy: `EchoFactory.Core.Tests` (28), `EchoFactory.Content.Tests` (20),
 - Audio: `Synth` (PCM tóny) + `AudioManager` (fail-soft bez zvukovky).
 - `Settings` (`GameSettings` + `SettingsStore`, JSON vedle exe).
 
-**Data (`/data`)** — `nodes/` (15 def), `levels/` (16), `solutions/` (16).
+**Data (`/data`)** — `nodes/` (15 def, každý s `description` pro kodex),
+`levels/` (17), `solutions/` (17).
 Formát: [content-format.md](./content-format.md). Levely se kopírují k exe (csproj
 `<None Include="..\..\data\**">`).
 
@@ -129,8 +132,12 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
   to proklikne**.
 
 ## 6. Co dělat dál (priorita z [playtest-feedback.md](./playtest-feedback.md))
-1. **Konfigurace uzlů klikem** (panel po kliknutí na uzel) + zřetelné vstupy/
-   výstupy math a splitteru. (Současné +/-/Tab „adjust" hráč nechápe.)
+1. ✅ HOTOVO **Konfigurace uzlů klikem** — klik na umístěný uzel otevře panel
+   specifický pro jeho typ (směr/konstanta/porovnání/výstupy + DELETE), vybraná
+   buňka se zvýrazní, Esc zruší výběr. Umisťování = „drag prázdných buněk".
+   + **help overlay** (H / „? HELP") vysvětlí cíl a každý uzel (kodex z JSON
+     `description`). **Neověřené lokálně — proklikat.** Zbývá: zřetelnější
+     vizualizace vstupů math/splitteru přímo na gridu (porty), zatočené pásy.
 2. **Editor → klikací UI:** jméno levelu, max ticks, inventář, velikost gridu,
    pořádný číselník (čísla > 9), tlačítko TEST, klikací paleta uzlů.
 3. **Kampaně + scroll:** pole `campaign` v levelu + editoru; výběr Play → kampaň →
@@ -138,8 +145,10 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
 4. **Smyčky (design ⭐):** ✅ HOTOVO router (`RouterNode`) + akumulátor
    (`AccumulatorNode`) + demo levely `lvl_loop_counter_01`, `lvl_tally_01` a
    paleta tools 7/8. Hráč 2026-06-18 zvolil „obojí". **Zbývá:** lepší vysvětlení/
-   **tutoriál portálu** (vizualizace in↔out) a těžší kombinované smyčkové levely
-   (router+akumulátor). GUI tools 7/8 zatím **neověřené lokálně** — proklikat.
+   **tutoriál portálu** (vizualizace in↔out „kometa" na gridu — help overlay už
+   portál slovně vysvětluje) a těžší kombinované smyčkové levely (router+
+   akumulátor). Nový gentle level `lvl_route_01` učí router (2 výstupy). GUI tools
+   7/8 + panel + overlay zatím **neověřené lokálně** — proklikat.
 5. **Vizuál:** zatočené pásy (oblouk dle vstup/výstup), hezčí tlačítka (mřížka/
    ikony), mírně lepší uzly, **animované pozadí menu** (běžící „nesmyslná" továrna).
 6. **Build/nastavení:** `dotnet publish` win-x64 self-contained **EXE** (do README);

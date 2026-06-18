@@ -2,6 +2,7 @@
   "schema_version": 1,
   "id": "node_math_max",
   "name": "Maximum",
+  "description": "Emits the larger of its two inputs (or a value compared with a constant).",
   "type": "math",
   "category": "Math",
   "logic": { "operation": "max" },
