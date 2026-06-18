@@ -107,6 +107,36 @@ public static class SolutionLoader
                     }));
                     break;
 
+                case NodeKind.Router:
+                    if (pn.Constant is not int routerConstant)
+                    {
+                        throw new ContentException($"{where}: router requires a constant");
+                    }
+
+                    nodes.Add(PlacedNode.Route(pos, new RouterConfig
+                    {
+                        Comparison = Tokens.Comparison(pn.Comparison, where),
+                        Constant = routerConstant,
+                        OutMatch = Tokens.Dir(pn.OutMatch, where),
+                        OutElse = Tokens.Dir(pn.OutElse, where),
+                    }));
+                    break;
+
+                case NodeKind.Accumulator:
+                    if (pn.Constant is not int releaseConstant)
+                    {
+                        throw new ContentException($"{where}: accumulator requires a constant");
+                    }
+
+                    nodes.Add(PlacedNode.Accumulate(pos, new AccumulatorConfig
+                    {
+                        ReleaseWhen = Tokens.Comparison(pn.Comparison, where),
+                        Constant = releaseConstant,
+                        Output = Tokens.Dir(pn.Direction, where),
+                        Initial = pn.Initial ?? 0,
+                    }));
+                    break;
+
                 default:
                     throw new ContentException($"{where}: cannot place a node of kind {def.Kind} in a solution");
             }

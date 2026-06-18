@@ -13,4 +13,6 @@ public enum NodeKind
     Splitter,
     Portal,
     Filter,
+    Router,
+    Accumulator,
 }

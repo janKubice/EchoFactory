@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "node_accumulator",
+  "name": "Accumulator",
+  "type": "accumulator",
+  "category": "Logic",
+  "tick_cost": 1,
+  "visual": { "shape": "square", "color_hex": "#E67E22", "icon": "A" }
+}

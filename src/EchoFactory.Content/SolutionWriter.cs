@@ -28,6 +28,8 @@ public static class SolutionWriter
         NodeKind.Splitter => new PlacedNodeDto { Node = "node_splitter", Position = Point(n.Position), OutputA = Dir(n.Splitter!.OutputA), OutputB = Dir(n.Splitter!.OutputB), StartWithA = n.Splitter!.StartWithA },
         NodeKind.Portal => new PlacedNodeDto { Node = "node_portal", Position = Point(n.Position), Direction = Dir(n.Portal!.Output), TimeOffset = n.Portal!.TimeOffset },
         NodeKind.Filter => new PlacedNodeDto { Node = "node_filter", Position = Point(n.Position), Direction = Dir(n.Filter!.Output), Comparison = Cmp(n.Filter!.Comparison), Constant = n.Filter!.Constant },
+        NodeKind.Router => new PlacedNodeDto { Node = "node_router", Position = Point(n.Position), Comparison = Cmp(n.Router!.Comparison), Constant = n.Router!.Constant, OutMatch = Dir(n.Router!.OutMatch), OutElse = Dir(n.Router!.OutElse) },
+        NodeKind.Accumulator => new PlacedNodeDto { Node = "node_accumulator", Position = Point(n.Position), Comparison = Cmp(n.Accumulator!.ReleaseWhen), Constant = n.Accumulator!.Constant, Direction = Dir(n.Accumulator!.Output), Initial = n.Accumulator!.Initial == 0 ? null : n.Accumulator!.Initial },
         _ => throw new ContentException($"cannot serialize node kind {n.Kind}"),
     };
 

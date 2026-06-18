@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "level_id": "lvl_loop_counter_01",
+  "placed_nodes": [
+    { "node": "node_math_add", "position": { "x": 1, "y": 1 }, "direction": "right", "constant": 1 },
+    { "node": "node_belt", "position": { "x": 2, "y": 1 }, "direction": "down" },
+    { "node": "node_router", "position": { "x": 2, "y": 2 }, "comparison": "ge", "constant": 5, "out_match": "right", "out_else": "left" },
+    { "node": "node_belt", "position": { "x": 1, "y": 2 }, "direction": "up" }
+  ]
+}

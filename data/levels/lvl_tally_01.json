@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "lvl_tally_01",
+  "name": "Running Total",
+  "order": 12,
+  "description": "An accumulator folds a stream of values into a running sum and releases the total once it reaches the target. Add five 1s into 5.",
+  "grid": { "width": 4, "height": 3 },
+  "max_ticks": 20,
+  "par": { "ticks": 7, "footprint": 2 },
+  "inventory": {
+    "mode": "whitelist",
+    "allowed": ["node_belt", "node_accumulator"],
+    "limits": { "node_belt": 1, "node_accumulator": 1 }
+  },
+  "fixed_nodes": [
+    {
+      "id": "gen",
+      "type": "generator",
+      "position": { "x": 0, "y": 1 },
+      "direction": "right",
+      "schedule": [
+        { "tick": 0, "value": 1 },
+        { "tick": 1, "value": 1 },
+        { "tick": 2, "value": 1 },
+        { "tick": 3, "value": 1 },
+        { "tick": 4, "value": 1 }
+      ]
+    },
+    {
+      "id": "sink",
+      "type": "sink",
+      "position": { "x": 3, "y": 1 },
+      "expected": [5]
+    }
+  ]
+}

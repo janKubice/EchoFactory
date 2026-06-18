@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "node_router",
+  "name": "Router",
+  "type": "router",
+  "category": "Logic",
+  "tick_cost": 1,
+  "visual": { "shape": "triangle", "color_hex": "#9B59B6", "icon": "R" }
+}
