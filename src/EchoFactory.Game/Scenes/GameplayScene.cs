@@ -13,6 +13,8 @@ internal enum Tool
     Splitter,
     Portal,
     Filter,
+    Router,
+    Accumulator,
 }
 
 internal enum PlayMode
@@ -28,10 +30,12 @@ internal sealed class GameplayScene : IScene
     {
         (Tool.Belt, "1 BELT"),
         (Tool.MathAdd, "2 ADD"),
-        (Tool.MathMul, "3 MUL X2"),
+        (Tool.MathMul, "3 MUL"),
         (Tool.Splitter, "4 SPLIT"),
         (Tool.Portal, "5 PORTAL"),
         (Tool.Filter, "6 FILTER"),
+        (Tool.Router, "7 ROUTER"),
+        (Tool.Accumulator, "8 SUM"),
     };
 
     private readonly SceneManager _scenes;
@@ -55,6 +59,10 @@ internal sealed class GameplayScene : IScene
     private int _portalOffset = 2;
     private int _filterConstant = 1;
     private Comparison _filterComparison = Comparison.Ge;
+    private int _routerConstant = 5;
+    private Comparison _routerComparison = Comparison.Ge;
+    private int _accConstant = 10;
+    private Comparison _accComparison = Comparison.Ge;
     private PlayMode _mode = PlayMode.Build;
     private SimulationResult? _result;
     private SubmitOutcome? _submit;
@@ -94,8 +102,8 @@ internal sealed class GameplayScene : IScene
         int px = 40;
         foreach (var (tool, _) in Tools)
         {
-            _palette.Add((new Rectangle(px, h - 132, 150, 48), tool));
-            px += 158;
+            _palette.Add((new Rectangle(px, h - 132, 118, 48), tool));
+            px += 124;
         }
 
         _startInfo = _level.Generators.Count == 0
@@ -156,11 +164,18 @@ internal sealed class GameplayScene : IScene
         if (input.KeyPressed(Keys.D4)) _tool = Tool.Splitter;
         if (input.KeyPressed(Keys.D5)) _tool = Tool.Portal;
         if (input.KeyPressed(Keys.D6)) _tool = Tool.Filter;
+        if (input.KeyPressed(Keys.D7)) _tool = Tool.Router;
+        if (input.KeyPressed(Keys.D8)) _tool = Tool.Accumulator;
         if (input.KeyPressed(Keys.R)) _dir = Cw(_dir);
 
         if (input.KeyPressed(Keys.OemPlus) || input.KeyPressed(Keys.Add)) AdjustConfig(+1);
         if (input.KeyPressed(Keys.OemMinus) || input.KeyPressed(Keys.Subtract)) AdjustConfig(-1);
-        if (input.KeyPressed(Keys.Tab) && _tool == Tool.Filter) _filterComparison = (Comparison)(((int)_filterComparison + 1) % 6);
+        if (input.KeyPressed(Keys.Tab))
+        {
+            if (_tool == Tool.Filter) _filterComparison = (Comparison)(((int)_filterComparison + 1) % 6);
+            if (_tool == Tool.Router) _routerComparison = (Comparison)(((int)_routerComparison + 1) % 6);
+            if (_tool == Tool.Accumulator) _accComparison = (Comparison)(((int)_accComparison + 1) % 6);
+        }
 
         if (input.KeyPressed(Keys.X) && _editor.Clear()) _scenes.Play(Sfx.Remove);
         if (input.KeyPressed(Keys.L))
@@ -220,6 +235,12 @@ internal sealed class GameplayScene : IScene
                 break;
             case Tool.Filter:
                 _filterConstant += delta;
+                break;
+            case Tool.Router:
+                _routerConstant += delta;
+                break;
+            case Tool.Accumulator:
+                _accConstant += delta;
                 break;
             default:
                 break;
@@ -449,6 +470,15 @@ internal sealed class GameplayScene : IScene
                     DrawNodeCell(r, node.Position, Palette.Filter, "F", CompSym(node.Filter!.Comparison) + node.Filter!.Constant.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     DrawOutArrow(r, node.Position, node.Filter!.Output, Palette.Filter);
                     break;
+                case NodeKind.Router:
+                    DrawNodeCell(r, node.Position, Palette.Router, "R", CompSym(node.Router!.Comparison) + node.Router!.Constant.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    DrawOutArrow(r, node.Position, node.Router!.OutMatch, Palette.Router);
+                    DrawOutArrow(r, node.Position, node.Router!.OutElse, Palette.TextDim);
+                    break;
+                case NodeKind.Accumulator:
+                    DrawNodeCell(r, node.Position, Palette.Accumulator, "A", CompSym(node.Accumulator!.ReleaseWhen) + node.Accumulator!.Constant.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    DrawOutArrow(r, node.Position, node.Accumulator!.Output, Palette.Accumulator);
+                    break;
                 default:
                     break;
             }
@@ -595,7 +625,7 @@ internal sealed class GameplayScene : IScene
             r.RectOutline(rect.X, rect.Y, rect.Width, rect.Height, 2, selected ? Palette.Accent : Palette.GridLine);
 
             string label = Tools.First(t => t.Tool == tool).Label;
-            r.TextCentered(label, new Vector2(rect.Center.X, rect.Center.Y - 6), 2.2f, allowed ? (selected ? Palette.Text : Palette.TextDim) : Palette.Paradox);
+            r.TextCenteredFit(label, new Vector2(rect.Center.X, rect.Center.Y - 6), rect.Width - 12, 18, allowed ? (selected ? Palette.Text : Palette.TextDim) : Palette.Paradox);
 
             string countText = !allowed ? "BLOCKED" : (limit == int.MaxValue ? used + " USED" : used + " / " + limit);
             Color countColor = !allowed ? Palette.Paradox : (limit != int.MaxValue && used >= limit ? Palette.Failed : Palette.TextDim);
@@ -619,6 +649,8 @@ internal sealed class GameplayScene : IScene
         Tool.Splitter => "SPLITTER",
         Tool.Portal => "PORTAL offset " + _portalOffset,
         Tool.Filter => "FILTER " + CompSym(_filterComparison) + _filterConstant,
+        Tool.Router => "ROUTER " + CompSym(_routerComparison) + _routerConstant + " -> " + DirName(_dir) + " ELSE " + DirName(Opp(_dir)),
+        Tool.Accumulator => "SUM release " + CompSym(_accComparison) + _accConstant + " -> " + DirName(_dir),
         _ => string.Empty,
     };
 
@@ -739,6 +771,8 @@ internal sealed class GameplayScene : IScene
         Tool.Splitter => Palette.Splitter,
         Tool.Portal => Palette.Portal,
         Tool.Filter => Palette.Filter,
+        Tool.Router => Palette.Router,
+        Tool.Accumulator => Palette.Accumulator,
         _ => Palette.Belt,
     };
 
@@ -749,6 +783,8 @@ internal sealed class GameplayScene : IScene
         Tool.Splitter => "Y",
         Tool.Portal => "@",
         Tool.Filter => "F",
+        Tool.Router => "R",
+        Tool.Accumulator => "A",
         _ => ">",
     };
 
@@ -766,6 +802,8 @@ internal sealed class GameplayScene : IScene
         Tool.Splitter => "node_splitter",
         Tool.Portal => "node_portal",
         Tool.Filter => "node_filter",
+        Tool.Router => "node_router",
+        Tool.Accumulator => "node_accumulator",
         _ => "node_belt",
     };
 
@@ -777,6 +815,8 @@ internal sealed class GameplayScene : IScene
         NodeKind.Splitter => Tool.Splitter,
         NodeKind.Portal => Tool.Portal,
         NodeKind.Filter => Tool.Filter,
+        NodeKind.Router => Tool.Router,
+        NodeKind.Accumulator => Tool.Accumulator,
         NodeKind.Math => n.Math!.Constant.HasValue ? Tool.MathMul : Tool.MathAdd,
         _ => Tool.Belt,
     };
@@ -795,6 +835,8 @@ internal sealed class GameplayScene : IScene
         Tool.Splitter => PlacedNode.Split(cell, new SplitterConfig { OutputA = Cw(_dir), OutputB = Ccw(_dir) }),
         Tool.Portal => PlacedNode.TimePortal(cell, new PortalConfig { TimeOffset = _portalOffset, Output = _dir }),
         Tool.Filter => PlacedNode.Gate(cell, new FilterConfig { Comparison = _filterComparison, Constant = _filterConstant, Output = _dir }),
+        Tool.Router => PlacedNode.Route(cell, new RouterConfig { Comparison = _routerComparison, Constant = _routerConstant, OutMatch = _dir, OutElse = Opp(_dir) }),
+        Tool.Accumulator => PlacedNode.Accumulate(cell, new AccumulatorConfig { ReleaseWhen = _accComparison, Constant = _accConstant, Output = _dir }),
         _ => PlacedNode.Belt(cell, _dir),
     };
 
@@ -824,6 +866,8 @@ internal sealed class GameplayScene : IScene
     private static Direction Cw(Direction d) => (Direction)(((int)d + 1) % 4);
 
     private static Direction Ccw(Direction d) => (Direction)(((int)d + 3) % 4);
+
+    private static Direction Opp(Direction d) => (Direction)(((int)d + 2) % 4);
 
     private static string DirName(Direction d) => d.ToString().ToUpperInvariant();
 
