@@ -557,25 +557,32 @@ internal sealed class GameplayScene : IScene
                     break;
                 case NodeKind.Math:
                     DrawNodeCell(r, node.Position, Palette.Math, MathIcon(node.Math!.Operation), node.Math!.Constant?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty);
+                    DrawInPorts(r, node.Position, Palette.Math, node.Math!.Output);
                     DrawOutArrow(r, node.Position, node.Math!.Output, Palette.Math);
                     break;
                 case NodeKind.Splitter:
                     DrawNodeCell(r, node.Position, Palette.Splitter, "Y", string.Empty);
+                    DrawInPorts(r, node.Position, Palette.Splitter, node.Splitter!.OutputA, node.Splitter!.OutputB);
+                    DrawOutArrow(r, node.Position, node.Splitter!.OutputA, Palette.Splitter);
+                    DrawOutArrow(r, node.Position, node.Splitter!.OutputB, Palette.Splitter);
                     break;
                 case NodeKind.Portal:
                     DrawPortal(r, node.Position, node.Portal!);
                     break;
                 case NodeKind.Filter:
                     DrawNodeCell(r, node.Position, Palette.Filter, "F", CompSym(node.Filter!.Comparison) + node.Filter!.Constant.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    DrawInPorts(r, node.Position, Palette.Filter, node.Filter!.Output);
                     DrawOutArrow(r, node.Position, node.Filter!.Output, Palette.Filter);
                     break;
                 case NodeKind.Router:
                     DrawNodeCell(r, node.Position, Palette.Router, "R", CompSym(node.Router!.Comparison) + node.Router!.Constant.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    DrawInPorts(r, node.Position, Palette.Router, node.Router!.OutMatch, node.Router!.OutElse);
                     DrawOutArrow(r, node.Position, node.Router!.OutMatch, Palette.Router);
                     DrawOutArrow(r, node.Position, node.Router!.OutElse, Palette.TextDim);
                     break;
                 case NodeKind.Accumulator:
                     DrawNodeCell(r, node.Position, Palette.Accumulator, "A", CompSym(node.Accumulator!.ReleaseWhen) + node.Accumulator!.Constant.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    DrawInPorts(r, node.Position, Palette.Accumulator, node.Accumulator!.Output);
                     DrawOutArrow(r, node.Position, node.Accumulator!.Output, Palette.Accumulator);
                     break;
                 default:
@@ -672,18 +679,56 @@ internal sealed class GameplayScene : IScene
         r.Line(tip, tip - (d * a) - (perp * a), 3f, color);
     }
 
+    /// <summary>Faint inward chevrons on every side that is not an output — "items flow in here".</summary>
+    private void DrawInPorts(Renderer r, GridPoint cell, Color color, params Direction[] outputs)
+    {
+        Vector2 c = _grid.CellCenter(cell);
+        float s = _grid.CellSize;
+        var tint = new Color(color.R, color.G, color.B, (byte)80);
+        float thick = MathF.Max(2f, s * 0.028f);
+        foreach (Direction dir in AllDirs)
+        {
+            if (Array.IndexOf(outputs, dir) >= 0)
+            {
+                continue;
+            }
+
+            Vector2 d = Offset(dir);
+            Vector2 perp = new(-d.Y, d.X);
+            Vector2 edge = c + (d * s * 0.46f);
+            Vector2 tip = edge - (d * (s * 0.12f)); // points inward, toward the cell centre
+            float a = s * 0.05f;
+            r.Line(edge + (perp * a), tip, thick, tint);
+            r.Line(edge - (perp * a), tip, thick, tint);
+        }
+    }
+
     private void DrawPortal(Renderer r, GridPoint cell, PortalConfig config)
     {
         Vector2 c = _grid.CellCenter(cell);
-        float radius = _grid.CellSize * 0.34f;
+        float s = _grid.CellSize;
+        float radius = s * 0.34f;
         r.Disc(c, radius, Palette.Panel);
-        r.Ring(c, radius, MathF.Max(2f, _grid.CellSize * 0.03f), Palette.Portal);
-        r.TextCenteredFit("@", c, radius, radius, Palette.Portal);
+        r.Ring(c, radius, MathF.Max(2f, s * 0.03f), Palette.Portal);
+        r.TextCenteredFit("@", c - new Vector2(0, s * 0.12f), radius, radius * 0.7f, Palette.Portal);
+
+        // Time offset is the whole point of the portal — show it as t+N / t-N.
+        int off = config.TimeOffset;
+        string label = "t" + (off >= 0 ? "+" : "-") + Math.Abs(off).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        r.TextCenteredFit(label, c + new Vector2(0, s * 0.22f), s * 0.6f, s * 0.2f, Palette.Item);
+
+        DrawInPorts(r, cell, Palette.Portal, config.Output);
         DrawOutArrow(r, cell, config.Output, Palette.Portal);
+
+        // Echo rings hint at the value duplicated across time; a comet rides them during playback.
+        r.Ring(c, radius + 4f, 1.5f, new Color(Palette.Portal.R, Palette.Portal.G, Palette.Portal.B, (byte)90));
         if (_mode == PlayMode.Playback)
         {
-            float pulse = radius + 4f + (MathF.Sin(_playTime * 4f) * 3f);
+            float pulse = radius + 6f + (MathF.Sin(_playTime * 4f) * 3f);
             r.Ring(c, pulse, 2f, Palette.Portal);
+            float ang = _playTime * 5f;
+            Vector2 comet = c + (new Vector2(MathF.Cos(ang), MathF.Sin(ang)) * (radius + 6f));
+            r.Disc(comet, MathF.Max(2f, s * 0.05f), Palette.Item);
         }
     }
 
@@ -1187,6 +1232,8 @@ internal sealed class GameplayScene : IScene
         MathOperation.Max => "^",
         _ => "?",
     };
+
+    private static readonly Direction[] AllDirs = [Direction.Up, Direction.Right, Direction.Down, Direction.Left];
 
     private static Direction Cw(Direction d) => (Direction)(((int)d + 1) % 4);
 

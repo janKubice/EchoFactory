@@ -22,7 +22,10 @@ Plně **data-driven** (JSON) a postavené na **deterministickém headless enginu
   levelů, lokálními žebříčky, zvuky, nastavením, undo/redo, anti-cheat.
   **Klikací config panel uzlů** (klik na uzel → panel) + **in-game help overlay**
   (H / „? HELP": cíl levelu + kodex uzlů z JSON `description`).
-  **61 testů**, vše builduje. ~27 commitů.
+  **Intro splash s konfigurovatelným logem firmy** (obrázek z `branding/logo.png`,
+  cesta/jméno/zap-vyp v nastavení) + **měnitelná ikonka .exe** (`branding/app.ico`).
+  Vizuální TODO: vstupní porty math/splitteru + popisek/kometa portálu hotové.
+  **61 testů**, vše builduje. ~28 commitů.
 
 ## 2. Prostředí, build, test, push (DŮLEŽITÉ)
 
@@ -136,21 +139,24 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
    specifický pro jeho typ (směr/konstanta/porovnání/výstupy + DELETE), vybraná
    buňka se zvýrazní, Esc zruší výběr. Umisťování = „drag prázdných buněk".
    + **help overlay** (H / „? HELP") vysvětlí cíl a každý uzel (kodex z JSON
-     `description`). **Neověřené lokálně — proklikat.** Zbývá: zřetelnější
-     vizualizace vstupů math/splitteru přímo na gridu (porty), zatočené pásy.
+     `description`). + **vstupní porty** (slabé šipky dovnitř na nevýstupních
+     stranách) na math/splitter/filter/router/accumulator + splitter teď kreslí
+     oba výstupy. **Neověřené lokálně — proklikat.** Zbývá už jen **zatočené pásy**
+     (oblouk dle vstup/výstup).
 2. **Editor → klikací UI:** jméno levelu, max ticks, inventář, velikost gridu,
    pořádný číselník (čísla > 9), tlačítko TEST, klikací paleta uzlů.
 3. **Kampaně + scroll:** pole `campaign` v levelu + editoru; výběr Play → kampaň →
    levely; neomezeně (scroll kolečkem).
 4. **Smyčky (design ⭐):** ✅ HOTOVO router (`RouterNode`) + akumulátor
    (`AccumulatorNode`) + demo levely `lvl_loop_counter_01`, `lvl_tally_01` a
-   paleta tools 7/8. Hráč 2026-06-18 zvolil „obojí". **Zbývá:** lepší vysvětlení/
-   **tutoriál portálu** (vizualizace in↔out „kometa" na gridu — help overlay už
-   portál slovně vysvětluje) a těžší kombinované smyčkové levely (router+
-   akumulátor). Nový gentle level `lvl_route_01` učí router (2 výstupy). GUI tools
-   7/8 + panel + overlay zatím **neověřené lokálně** — proklikat.
-5. **Vizuál:** zatočené pásy (oblouk dle vstup/výstup), hezčí tlačítka (mřížka/
-   ikony), mírně lepší uzly, **animované pozadí menu** (běžící „nesmyslná" továrna).
+   paleta tools 7/8. Hráč 2026-06-18 zvolil „obojí". Portál teď ukazuje **popisek
+   `t+N`/`t-N`** + kometu v playbacku a help overlay ho vysvětluje slovně.
+   **Zbývá:** těžší kombinované smyčkové levely (router+akumulátor) a případně
+   dedikovaný tutoriálový level portálu. Nový gentle level `lvl_route_01` učí
+   router (2 výstupy). GUI tools 7/8 + panel + overlay zatím **neověřené lokálně**.
+5. **Vizuál:** ✅ vstupní porty + popisek portálu hotové; **zbývá zatočené pásy**
+   (oblouk dle vstup/výstup), hezčí tlačítka (mřížka/ikony), **animované pozadí
+   menu** (běžící „nesmyslná" továrna). Intro splash s logem viz §Branding níže.
 6. **Build/nastavení:** `dotnet publish` win-x64 self-contained **EXE** (do README);
    nastavení **fullscreen/windowed** + rozlišení (aplikovat na
    `GraphicsDeviceManager`, přepočítat layouty scén — berou `ScreenW/H`).
@@ -170,3 +176,9 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
 | kreslení / font | `Game/Rendering/Renderer.cs`, `VectorFont.cs`, `Palette.cs` |
 | žebříčky / anti-cheat | `Content/Leaderboard.cs`, `SubmissionVerifier.cs` |
 | levely/obsah | `data/levels/*`, `data/solutions/*`, `data/nodes/*` |
+| intro splash / logo firmy | `Game/Scenes/SplashScene.cs`, `Game/Game/BrandingPaths.cs`, `branding/` (+ `GameSettings.LogoPath/CompanyName/ShowIntro`) |
+| ikonka .exe | `<ApplicationIcon>` v `EchoFactory.Game.csproj` (čte `branding/app.ico`, pokud existuje) |
+
+**Branding (`/branding`)** — uživatelská personalizace, vše volitelné a kopíruje se
+vedle hry. `logo.png` = intro logo, `app.ico` = ikona .exe (rebuild). Chybějící
+soubory → splash ukáže placeholder s návodem. Detaily v `branding/README.md`.

@@ -4,6 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <!-- MonoGame.Framework.DesktopGL ships SDL natives per-RID; analyzers off as errors here. -->
+    <!-- Drop branding/app.ico to brand the Windows executable icon, then rebuild. -->
+    <ApplicationIcon Condition="Exists('..\..\branding\app.ico')">..\..\branding\app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +24,11 @@
   <!-- Copy the JSON content next to the executable so the game finds it after publish too. -->
   <ItemGroup>
     <None Include="..\..\data\**\*.json" Link="data\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Copy user branding (logo image, icon, README) next to the executable so it loads at runtime. -->
+  <ItemGroup>
+    <None Include="..\..\branding\**\*.*" Link="branding\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -106,6 +106,40 @@ internal sealed class Renderer : IDisposable
         }
     }
 
+    /// <summary>Loads a PNG/JPG/BMP from disk into a texture, or null if missing/unreadable.</summary>
+    public Texture2D? TryLoadTexture(string path)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            {
+                return null;
+            }
+
+            using FileStream fs = File.OpenRead(path);
+            return Texture2D.FromStream(_device, fs);
+        }
+        catch (Exception e) when (e is IOException or InvalidOperationException or ArgumentException or NotSupportedException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>Draws a texture scaled to fit (preserving aspect) and centered inside <paramref name="box"/>.</summary>
+    public void DrawTextureFit(Texture2D tex, Rectangle box, Color tint)
+    {
+        if (tex.Width <= 0 || tex.Height <= 0)
+        {
+            return;
+        }
+
+        float scale = MathF.Min((float)box.Width / tex.Width, (float)box.Height / tex.Height);
+        int w = Math.Max(1, (int)(tex.Width * scale));
+        int h = Math.Max(1, (int)(tex.Height * scale));
+        var dest = new Rectangle(box.X + ((box.Width - w) / 2), box.Y + ((box.Height - h) / 2), w, h);
+        _batch.Draw(tex, dest, tint);
+    }
+
     public void Text(string text, Vector2 pos, float pixel, Color color)
     {
         float cx = pos.X;

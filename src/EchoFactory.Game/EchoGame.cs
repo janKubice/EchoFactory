@@ -48,7 +48,7 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
                 ScreenW = GraphicsDevice.Viewport.Width,
                 ScreenH = GraphicsDevice.Viewport.Height,
             };
-            _scenes.Switch(new MainMenuScene(_scenes));
+            _scenes.Switch(_settings.ShowIntro ? new SplashScene(_scenes) : new MainMenuScene(_scenes));
         }
         catch (Exception e)
         {

@@ -32,4 +32,21 @@ internal sealed class InputState
     public bool KeyPressed(Keys key) => _keyboard.IsKeyDown(key) && _prevKeyboard.IsKeyUp(key);
 
     public bool KeyDown(Keys key) => _keyboard.IsKeyDown(key);
+
+    /// <summary>True on the frame any key transitions from up to down.</summary>
+    public bool AnyKeyPressed
+    {
+        get
+        {
+            foreach (Keys k in _keyboard.GetPressedKeys())
+            {
+                if (_prevKeyboard.IsKeyUp(k))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
 }

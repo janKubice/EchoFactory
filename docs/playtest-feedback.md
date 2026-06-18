@@ -83,10 +83,11 @@ specifický pro ten uzel** (místo globálních kláves +/-/Tab).
   ⚠️ neověřené lokálně — proklikat.
 - 🟢 **Help overlay + kodex uzlů** — HOTOVO: H / „? HELP" ukáže cíl levelu a
   vysvětlení každého uzlu (z JSON `description`). Pokrývá i math/portál slovně.
-- 🟡 **Math (suma) — kde jsou vstupy?** — slovně vysvětleno v kodexu; pořád chybí
-  **vizualizace vstupů/portů přímo na gridu** (explicitní vstupní porty).
-- 🟡 **Portál — vysvětlení** — kodex ho popisuje; chybí **vizuální** in↔out
-  „kometa" na gridu (sekce H).
+- 🟢 **Math (suma) — kde jsou vstupy?** — HOTOVO: na nevýstupních stranách uzlů
+  (math/splitter/filter/router/accumulator/portal) se kreslí **vstupní porty**
+  (slabé šipky dovnitř); splitter teď kreslí oba výstupy. Slovně i v kodexu.
+- 🟢 **Portál — vizualizace** — HOTOVO: popisek **`t+N`/`t-N`** + kometa
+  obíhající portál v playbacku (sekce H). Zbývá jen oblouk in↔out napříč buňkami.
 
 ## H. Design direction: smyčky, portál a „mega komplexní" puzzly  ⭐
 Nejdůležitější design feedback. Hráč má jiný (bohatší) mentální model, než co je
@@ -119,9 +120,9 @@ teď implementované — **přečíst pozorně**.
 - 🟢 **Prostorové smyčky bez času** — DEMO: `lvl_loop_counter_01` (jeden item
   krouží belt-smyčkou, +1 za kolo, router ho drží ve smyčce dokud nedosáhne cíle).
   Belt-smyčka + router + math = procesní loop bez portálu.
-- 🟡 **Portál — lepší vysvětlení/tutoriál** — help overlay (kodex) ho teď
-  **slovně** vysvětluje; zbývá **vizualizace in↔out** („kometa" dráhy na gridu)
-  + dedikovaný tutoriálový level. Druhá půlka hráčova „obojí".
+- 🟢 **Portál — lepší vysvětlení/tutoriál** — help overlay ho slovně vysvětluje +
+  na gridu má **popisek `t+N`** a **kometu** v playbacku. Zbývá jen dedikovaný
+  tutoriálový level portálu (nice-to-have).
 - 🟡 **Levely kolem akumulačních smyček** — `lvl_tally_01` (sečti stream do N).
   Přidat těžší: kombinace router+akumulátor ve smyčce, sběr N hodnot a podmíněný
   výdej.
