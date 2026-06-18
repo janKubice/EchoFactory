@@ -104,20 +104,21 @@ teď implementované — **přečíst pozorně**.
    pošle ven nebo na další kolo. To je klasický factory-loop a **přesně to hráč
    popisuje** (30 jedniček v cyklu, sčítat, splitter s podmínkou = router).
 
-**Co z toho plyne (návrh nových mechanik — k rozhodnutí s hráčem):**
-- 🔴 **Router / podmíněný splitter** — uzel se **2 výstupy**, který směruje podle
-  podmínky (`value <op> k` → out A, jinak → out B). Zobecnění současného
-  `FilterNode` (ten teď „nevyhovující zahodí"; router místo zahození pošle do
-  druhého výstupu). Tohle umožní „zpět do smyčky vs. do cíle".
-- 🔴 **Akumulátor / registr** — stavový uzel s **běžícím součtem** (sečti příchozí
-  s vnitřním stavem), aby šlo „sečíst 30 jedniček" ve smyčce. (Pozor na
-  determinismus + reset stavu per pass jako u splitteru/math bufferu.)
-- 🔴 **Prostorové smyčky bez času** — ujasnit, že belt smyčka + router + akumulátor
-  = procesní loop (nepotřebuje portál). Portál nechat jako *samostatnou*
-  pokročilou mechaniku s **lepším vysvětlením/tutoriálem** a vizualizací
-  (in↔out spojení, „kometa" dráhy).
-- 🔴 **Levely kolem akumulačních smyček** — navrhnout puzzly typu „posbírej/sečti
-  N hodnot ve smyčce a vydej výsledek, když podmínka".
+**Co z toho plyne (rozhodnuto s hráčem 2026-06-18: „obojí" — nové uzly + tutoriál portálu):**
+- 🟢 **Router / podmíněný splitter** — HOTOVO: `RouterNode`/`RouterConfig`
+  (`value <op> k` → `OutMatch`, jinak → `OutElse`). Nezahazuje (na rozdíl od
+  filtru) → umožňuje „zpět do smyčky vs. do cíle". Tool **7 ROUTER** v paletě.
+- 🟢 **Akumulátor / registr** — HOTOVO: `AccumulatorNode`/`AccumulatorConfig` —
+  běžící součet (`Initial`), uvolní celkový součet, když `sum <op> k`, pak se
+  resetuje. Stav čistý per pass (kompilátor staví uzly znovu). Tool **8 SUM**.
+- 🟢 **Prostorové smyčky bez času** — DEMO: `lvl_loop_counter_01` (jeden item
+  krouží belt-smyčkou, +1 za kolo, router ho drží ve smyčce dokud nedosáhne cíle).
+  Belt-smyčka + router + math = procesní loop bez portálu.
+- 🔴 **Portál — lepší vysvětlení/tutoriál** — pořád TODO (vizualizace in↔out,
+  „kometa" dráhy, tutoriálový level). To je druhá půlka hráčova „obojí".
+- 🟡 **Levely kolem akumulačních smyček** — `lvl_tally_01` (sečti stream do N).
+  Přidat těžší: kombinace router+akumulátor ve smyčce, sběr N hodnot a podmíněný
+  výdej.
 
 > ⚠️ Než se přidá router/akumulátor: probrat s hráčem, jestli chce (a) portál
 > coby čistě prostorovou smyčku přejmenovat/vysvětlit, nebo (b) přidat nové uzly
