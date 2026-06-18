@@ -95,24 +95,41 @@ dotnet run --project src/EchoFactory.Cli -- run lvl_loop_01 sol_loop_01
 dotnet run --project src/EchoFactory.Game
 ```
 
+### Distribuce (samostatný EXE bez nutnosti .NET)
+
+```bash
+# Windows build (výchozí); jde i linux-x64 / osx-x64 / osx-arm64
+scripts/publish.sh win-x64
+```
+
+Výsledek je `artifacts/win-x64/` — složka k zazipování a rozeslání: obsahuje
+single-file `EchoFactory.Game.exe`, nativní knihovny (SDL2, OpenAL) a **loose
+složky `data/` a `branding/`**, které hra čte za běhu. Na cílovém PC **není
+potřeba .NET**. Pro vlastní logo/ikonu viz `branding/README.md`.
+
 ### Ovládání hry
 
-**Build mode:** `1–6` výběr nástroje (pás / +add / ×mul / splitter / portál / filter) ·
-levým tlačítkem (drag) položit · pravým smazat · `R` otočit · `+/-` upravit parametr
-(násobek / offset portálu / práh filtru) · `Tab` cyklovat porovnání filtru ·
-`Ctrl+Z`/`Ctrl+Y` undo/redo · `L` načíst referenční řešení · `X` smazat vše ·
-`Space`/`COMPILE` spustit simulaci · `Esc` zpět.
+**Build mode:** `1–8` výběr nástroje z palety (pás / +add / ×mul / splitter /
+portál / filter / router / akumulátor) · **drag přes prázdné buňky** položí ·
+**klik na umístěný uzel** otevře **config panel** specifický pro ten uzel (směr,
+konstanta, porovnání, výstupy, DELETE) · pravým smazat · `R` otočit ·
+**`H` / „? HELP"** = nápověda (cíl levelu + kodex uzlů) · `Ctrl+Z`/`Ctrl+Y`
+undo/redo · `L` načíst referenční řešení · `X` smazat vše · `Space`/`COMPILE`
+spustit simulaci · `Esc` zrušit výběr / zpět.
 
 **Playback:** `Space` play/pauza · `←/→` krok · tažením po časové ose scrubbing ·
 `B` zpět do editace · `Esc` zpět. Po dohrání výsledková karta (Solved/Paradox,
 tiky, nodes, ★) s tlačítky RETRY / NEXT / LEVELS.
 
 **Zvuk a nastavení:** procedurální SFX; v hlavním menu **SETTINGS** (hlasitost
-master/SFX/hudba, mřížka) — uloží se do `echofactory-settings.json`.
+master/SFX/hudba, mřížka, **intro logo on/off**) — uloží se do
+`echofactory-settings.json` (vč. `LogoPath`/`CompanyName` pro branding).
 
-**Editor levelů:** v menu **LEVEL EDITOR** — `G`/`S` nástroj generátor/cíl, klik
-umístit/vybrat, `0-9` přidat hodnotu vybranému uzlu, šipky změní velikost mřížky,
-`T` otestovat, `Ctrl+S` uložit (level se objeví ve výběru levelů).
+**Editor levelů:** v menu **LEVEL EDITOR** — plně **klikací**: paleta GENERATOR/
+SINK, klik umístit/vybrat, **číselníky** (šířka/výška mřížky, max ticks), **textové
+pole jméno levelu**, **on-screen klávesnice** pro hodnoty vybraného uzlu (i
+víceciferné/záporné: `+/-`, ADD, DEL, CLR), **ROTATE/REMOVE**, tlačítka **TEST** a
+**SAVE** (level se objeví ve výběru levelů). Klávesové zkratky fungují i nadále.
 
 > Tip: na novém levelu zmáčkni `L` (načte referenční řešení) a `Space` — uvidíš
 > hru hned v akci, vč. `lvl_loop_01`, kde item dorazí do cíle *dřív, než vznikne*.

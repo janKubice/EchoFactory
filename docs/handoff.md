@@ -17,7 +17,7 @@ Plně **data-driven** (JSON) a postavené na **deterministickém headless enginu
   `janKubice/EchoFactory`. Hlavní/jediná větev (zatím se nemerguje do main).
 - **Komunikace s uživatelem: ČESKY.** Kód, JSON klíče, commity, identifikátory:
   **anglicky** (viz [glossary.md](./glossary.md)).
-- **Stav (2026-06-18):** hratelná hra se 17 levely (kampaň s onboardingem),
+- **Stav (2026-06-18):** hratelná hra s 15 levely (kampaň s onboardingem),
   10 typy uzlů (vč. **router** + **accumulator** pro procesní smyčky), editorem
   levelů, lokálními žebříčky, zvuky, nastavením, undo/redo, anti-cheat.
   **Klikací config panel uzlů** (klik na uzel → panel) + **in-game help overlay**
@@ -109,7 +109,7 @@ Testy: `EchoFactory.Core.Tests` (28), `EchoFactory.Content.Tests` (20),
 - `Settings` (`GameSettings` + `SettingsStore`, JSON vedle exe).
 
 **Data (`/data`)** — `nodes/` (15 def, každý s `description` pro kodex),
-`levels/` (17), `solutions/` (17).
+`levels/` (15), `solutions/` (15).
 Formát: [content-format.md](./content-format.md). Levely se kopírují k exe (csproj
 `<None Include="..\..\data\**">`).
 
@@ -163,9 +163,11 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
 5. **Vizuál:** ✅ vstupní porty + popisek portálu hotové; **zbývá zatočené pásy**
    (oblouk dle vstup/výstup), hezčí tlačítka (mřížka/ikony), **animované pozadí
    menu** (běžící „nesmyslná" továrna). Intro splash s logem viz §Branding níže.
-6. **Build/nastavení:** `dotnet publish` win-x64 self-contained **EXE** (do README);
-   nastavení **fullscreen/windowed** + rozlišení (aplikovat na
-   `GraphicsDeviceManager`, přepočítat layouty scén — berou `ScreenW/H`).
+6. **Build/nastavení:** 🟡 **EXE publish HOTOVO** — `scripts/publish.sh <rid>`
+   dělá self-contained single-file build (ověřeno win-x64: exe + SDL/OpenAL +
+   loose `data/`+`branding/`), návod v README. **Zbývá:** nastavení
+   **fullscreen/windowed** + rozlišení (aplikovat na `GraphicsDeviceManager`,
+   přepočítat layouty scén — berou `ScreenW/H`).
 
 > Bod 4 je **designové rozhodnutí** — než kódovat router/akumulátor, ptej se
 > uživatele (AskUserQuestion): chce portál jako prostorovou smyčku, nebo přidat
