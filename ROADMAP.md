@@ -303,6 +303,10 @@ Prohloubení enginu/obsahu (starší parkoviště):
 - ✅ **Inventory enforcement** — HOTOVO: model `LevelInventory` (whitelist/
   blacklist + limity), parsování JSON, enforcement ve `validate` i v editoru
   (paleta ukazuje použito/limit, blokované nástroje). Levely kampaně mají limity.
+- ✅ **Procesní smyčky (router + akumulátor)** — HOTOVO: `RouterNode` (podmíněný
+  splitter, 2 výstupy) + `AccumulatorNode` (běžící součet s uvolněním na podmínku);
+  levely `lvl_loop_counter_01` (prostorová smyčka) + `lvl_tally_01`; paleta tools
+  7/8. Zbývá tutoriál portálu + těžší kombinované smyčkové levely.
 - **Víc kampaňových levelů** + těžší temporální hádanky (bootstrap, víc portálů).
 - ✅ **Server-side verify** — HOTOVO: `SubmissionVerifier` re-simuluje submit a
   ověří inventář + že řeší + tvrzené metriky. CLI `verify ... --ticks N --footprint M`.
