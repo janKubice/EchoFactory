@@ -28,6 +28,7 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
         IsMouseVisible = true;
         Window.AllowUserResizing = false;
         Window.Title = "EchoFactory";
+        Window.TextInput += (_, e) => _input.EnqueueText(e.Character);
     }
 
     protected override void LoadContent()

@@ -6,8 +6,10 @@ using Microsoft.Xna.Framework.Input;
 namespace EchoFactory.Game;
 
 /// <summary>
-/// A simple in-game level editor: place generators/sinks, edit their value sequences, resize the
-/// grid, test-play, and save to <c>data/levels</c> via <see cref="LevelWriter"/>.
+/// In-game level editor with a fully clickable UI: place generators/sinks, edit their value
+/// sequences with an on-screen keypad (multi-digit + negative), resize the grid and max-ticks
+/// with steppers, name the level, test-play, and save to <c>data/levels</c>.
+/// Keyboard shortcuts still work as accelerators.
 /// </summary>
 internal sealed class LevelEditorScene : IScene
 {
@@ -30,31 +32,100 @@ internal sealed class LevelEditorScene : IScene
         Sink,
     }
 
+    private enum PadAction
+    {
+        Digit,
+        Sign,
+        Backspace,
+    }
+
+    private readonly record struct PadKey(Rectangle Rect, string Label, PadAction Action, int Digit);
+
     private readonly SceneManager _scenes;
     private readonly List<EdGen> _gens = [];
     private readonly List<EdSink> _sinks = [];
     private int _w = 8;
     private int _h = 6;
+    private int _maxTicks = 60;
+    private string _name = string.Empty;
+    private string _entry = string.Empty;
+    private bool _nameEditing;
     private GridView _grid;
     private EdTool _tool = EdTool.Generator;
     private EdGen? _selGen;
     private EdSink? _selSink;
-    private string _message = "PLACE A GENERATOR (G) AND A SINK (S), THEN ADD VALUES WITH 0-9";
+    private string _message = "PLACE A GENERATOR AND A SINK, SELECT IT, THEN ADD VALUES WITH THE KEYPAD";
     private Vector2 _mouse;
+
     private readonly Rectangle _playArea;
+    private readonly Rectangle _panel;
+    private readonly UiButton _backBtn;
+    private readonly UiButton _testBtn;
+    private readonly UiButton _saveBtn;
+    private readonly UiButton _genTool;
+    private readonly UiButton _sinkTool;
+    private readonly Rectangle _nameField;
+    private readonly UiButton _wMinus;
+    private readonly UiButton _wPlus;
+    private readonly UiButton _hMinus;
+    private readonly UiButton _hPlus;
+    private readonly UiButton _tMinus;
+    private readonly UiButton _tPlus;
+    private readonly UiButton _addBtn;
+    private readonly UiButton _clrBtn;
+    private readonly UiButton _rotateBtn;
+    private readonly UiButton _removeBtn;
+    private readonly int _padTop;
 
     public LevelEditorScene(SceneManager scenes)
     {
         _scenes = scenes;
-        _playArea = new Rectangle(40, 116, scenes.ScreenW - 80, scenes.ScreenH - 116 - 120);
+        int w = scenes.ScreenW;
+        int h = scenes.ScreenH;
+
+        _panel = new Rectangle(w - 272, 64, 252, h - 64 - 40);
+        _playArea = new Rectangle(40, 150, _panel.X - 40 - 20, h - 150 - 44);
         _grid = new GridView(new GridSize(_w, _h), _playArea);
+
+        _backBtn = new UiButton(new Rectangle(16, 12, 120, 34), "< MENU");
+        _testBtn = new UiButton(new Rectangle(w - 264, 12, 120, 34), "TEST [T]");
+        _saveBtn = new UiButton(new Rectangle(w - 136, 12, 120, 34), "SAVE [S]");
+
+        _genTool = new UiButton(new Rectangle(16, 64, 150, 38), "GENERATOR");
+        _sinkTool = new UiButton(new Rectangle(174, 64, 150, 38), "SINK");
+        _nameField = new Rectangle(420, 64, _panel.X - 420 - 20, 38);
+
+        int px = _panel.X + 12;
+        int valX = _panel.X + 150;
+        _wMinus = new UiButton(new Rectangle(valX, _panel.Y + 30, 32, 30), "-");
+        _wPlus = new UiButton(new Rectangle(valX + 70, _panel.Y + 30, 32, 30), "+");
+        _hMinus = new UiButton(new Rectangle(valX, _panel.Y + 66, 32, 30), "-");
+        _hPlus = new UiButton(new Rectangle(valX + 70, _panel.Y + 66, 32, 30), "+");
+        _tMinus = new UiButton(new Rectangle(valX, _panel.Y + 102, 32, 30), "-");
+        _tPlus = new UiButton(new Rectangle(valX + 70, _panel.Y + 102, 32, 30), "+");
+
+        _padTop = _panel.Y + 262;
+        int bw = (_panel.Width - 24 - 16) / 3;
+        int bh = 38;
+        const int gap = 8;
+        int addY = _padTop + (4 * (bh + gap));
+        _addBtn = new UiButton(new Rectangle(px, addY, (2 * bw) + gap, bh), "ADD");
+        _clrBtn = new UiButton(new Rectangle(px + (2 * (bw + gap)), addY, bw, bh), "CLR");
+        _rotateBtn = new UiButton(new Rectangle(px, addY + bh + gap, _panel.Width - 24, bh), "ROTATE OUT");
+        _removeBtn = new UiButton(new Rectangle(px, addY + (2 * (bh + gap)), _panel.Width - 24, bh), "REMOVE NODE");
     }
 
     public void Update(float dt, InputState input)
     {
         _mouse = input.Mouse;
         bool ctrl = input.KeyDown(Keys.LeftControl) || input.KeyDown(Keys.RightControl);
-        bool overGrid = _grid.TryScreenToCell(_mouse, out GridPoint cell);
+
+        // Name text field captures all typing while active.
+        if (_nameEditing)
+        {
+            UpdateNameEditing(input);
+            return;
+        }
 
         if (input.KeyPressed(Keys.Escape))
         {
@@ -62,56 +133,156 @@ internal sealed class LevelEditorScene : IScene
             return;
         }
 
-        if (ctrl && input.KeyPressed(Keys.S))
+        // --- top bar + toolbar buttons ---
+        if (input.LeftClick)
         {
-            Save();
-            return;
-        }
+            if (_backBtn.Hit(_mouse)) { _scenes.Switch(new MainMenuScene(_scenes)); return; }
+            if (_testBtn.Hit(_mouse)) { TestPlay(); return; }
+            if (_saveBtn.Hit(_mouse)) { Save(); return; }
+            if (_genTool.Hit(_mouse)) { _tool = EdTool.Generator; _scenes.Play(Sfx.Click); return; }
+            if (_sinkTool.Hit(_mouse)) { _tool = EdTool.Sink; _scenes.Play(Sfx.Click); return; }
+            if (_nameField.Contains(Point(_mouse))) { _nameEditing = true; _scenes.Play(Sfx.Click); return; }
 
-        if (input.KeyPressed(Keys.T))
-        {
-            TestPlay();
-            return;
-        }
+            if (_wMinus.Hit(_mouse)) { Resize(_w - 1, _h); return; }
+            if (_wPlus.Hit(_mouse)) { Resize(_w + 1, _h); return; }
+            if (_hMinus.Hit(_mouse)) { Resize(_w, _h - 1); return; }
+            if (_hPlus.Hit(_mouse)) { Resize(_w, _h + 1); return; }
+            if (_tMinus.Hit(_mouse)) { _maxTicks = Math.Clamp(_maxTicks - 5, 5, 999); return; }
+            if (_tPlus.Hit(_mouse)) { _maxTicks = Math.Clamp(_maxTicks + 5, 5, 999); return; }
 
-        if (input.KeyPressed(Keys.G)) _tool = EdTool.Generator;
-        if (input.KeyPressed(Keys.S) && !ctrl) _tool = EdTool.Sink;
+            if (HandlePanelClick()) { return; }
 
-        // grid resize
-        if (input.KeyPressed(Keys.Right)) Resize(_w + 1, _h);
-        if (input.KeyPressed(Keys.Left)) Resize(_w - 1, _h);
-        if (input.KeyPressed(Keys.Up)) Resize(_w, _h - 1);
-        if (input.KeyPressed(Keys.Down)) Resize(_w, _h + 1);
-
-        // edit selected node
-        for (int d = 0; d <= 9; d++)
-        {
-            if (input.KeyPressed(Keys.D0 + d))
+            if (_grid.TryScreenToCell(_mouse, out GridPoint cell))
             {
-                Selected()?.Add(d);
-                _scenes.Play(Sfx.Click);
+                ClickCell(cell);
+                return;
             }
         }
 
-        if (input.KeyPressed(Keys.Back) && Selected() is { Count: > 0 } list)
-        {
-            list.RemoveAt(list.Count - 1);
-        }
-
-        if (input.KeyPressed(Keys.Delete))
-        {
-            DeleteSelected();
-        }
-
+        // --- keyboard accelerators ---
+        if (ctrl && input.KeyPressed(Keys.S)) { Save(); return; }
+        if (input.KeyPressed(Keys.T)) { TestPlay(); return; }
+        if (input.KeyPressed(Keys.G)) { _tool = EdTool.Generator; }
+        if (input.KeyPressed(Keys.Right)) { Resize(_w + 1, _h); }
+        if (input.KeyPressed(Keys.Left)) { Resize(_w - 1, _h); }
+        if (input.KeyPressed(Keys.Up)) { Resize(_w, _h - 1); }
+        if (input.KeyPressed(Keys.Down)) { Resize(_w, _h + 1); }
+        if (input.KeyPressed(Keys.Delete)) { DeleteSelected(); }
         if (input.KeyPressed(Keys.R) && _selGen is not null)
         {
             _selGen.Output = (Direction)(((int)_selGen.Output + 1) % 4);
         }
 
-        if (input.LeftClick && overGrid)
+        // Typed digits / sign build the entry buffer for the selected node.
+        if (Selected() is not null)
         {
-            ClickCell(cell);
+            foreach (char ch in input.Typed)
+            {
+                AppendEntry(ch);
+            }
+
+            if (input.KeyPressed(Keys.Enter)) { CommitEntry(); }
+            if (input.KeyPressed(Keys.Back)) { Backspace(); }
         }
+    }
+
+    private void UpdateNameEditing(InputState input)
+    {
+        foreach (char ch in input.Typed)
+        {
+            if ((char.IsLetterOrDigit(ch) || ch is ' ' or '_' or '-') && _name.Length < 24)
+            {
+                _name += ch;
+            }
+        }
+
+        if (input.KeyPressed(Keys.Back) && _name.Length > 0)
+        {
+            _name = _name[..^1];
+        }
+
+        if (input.KeyPressed(Keys.Enter) || input.KeyPressed(Keys.Escape) ||
+            (input.LeftClick && !_nameField.Contains(Point(_mouse))))
+        {
+            _nameEditing = false;
+        }
+    }
+
+    private bool HandlePanelClick()
+    {
+        if (Selected() is not { } list)
+        {
+            return false;
+        }
+
+        foreach (PadKey key in KeypadKeys())
+        {
+            if (key.Rect.Contains(Point(_mouse)))
+            {
+                switch (key.Action)
+                {
+                    case PadAction.Digit: AppendEntry((char)('0' + key.Digit)); break;
+                    case PadAction.Sign: ToggleSign(); break;
+                    case PadAction.Backspace: Backspace(); break;
+                }
+
+                _scenes.Play(Sfx.Click);
+                return true;
+            }
+        }
+
+        if (_addBtn.Hit(_mouse)) { CommitEntry(); return true; }
+        if (_clrBtn.Hit(_mouse)) { list.Clear(); _scenes.Play(Sfx.Remove); return true; }
+        if (_removeBtn.Hit(_mouse)) { DeleteSelected(); return true; }
+        if (_rotateBtn.Hit(_mouse) && _selGen is not null)
+        {
+            _selGen.Output = (Direction)(((int)_selGen.Output + 1) % 4);
+            _scenes.Play(Sfx.Click);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void AppendEntry(char ch)
+    {
+        if (char.IsDigit(ch))
+        {
+            if (_entry.Replace("-", string.Empty).Length < 5)
+            {
+                _entry += ch;
+            }
+        }
+        else if (ch == '-' && _entry.Length == 0)
+        {
+            _entry = "-";
+        }
+    }
+
+    private void ToggleSign() => _entry = _entry.StartsWith('-') ? _entry[1..] : "-" + _entry;
+
+    private void Backspace()
+    {
+        if (_entry.Length > 0)
+        {
+            _entry = _entry[..^1];
+        }
+        else if (Selected() is { Count: > 0 } list)
+        {
+            list.RemoveAt(list.Count - 1);
+        }
+    }
+
+    private void CommitEntry()
+    {
+        string trimmed = _entry == "-" ? string.Empty : _entry;
+        if (trimmed.Length > 0 && int.TryParse(trimmed, System.Globalization.CultureInfo.InvariantCulture, out int v))
+        {
+            Selected()?.Add(v);
+            _scenes.Play(Sfx.Place);
+        }
+
+        _entry = string.Empty;
     }
 
     private List<int>? Selected() => _selGen?.Values ?? _selSink?.Expected;
@@ -120,6 +291,7 @@ internal sealed class LevelEditorScene : IScene
     {
         EdGen? gen = _gens.FirstOrDefault(g => g.Pos == cell);
         EdSink? sink = _sinks.FirstOrDefault(s => s.Pos == cell);
+        _entry = string.Empty;
 
         if (gen is not null)
         {
@@ -162,6 +334,7 @@ internal sealed class LevelEditorScene : IScene
             _selSink = null;
         }
 
+        _entry = string.Empty;
         _scenes.Play(Sfx.Remove);
     }
 
@@ -179,8 +352,9 @@ internal sealed class LevelEditorScene : IScene
     private LevelDefinition BuildLevel(string id) => new()
     {
         Id = id,
+        Name = string.IsNullOrWhiteSpace(_name) ? id : _name.Trim(),
         Grid = new GridSize(_w, _h),
-        MaxTicks = 60,
+        MaxTicks = _maxTicks,
         MaxTemporalPasses = 5,
         Generators = _gens.Select((g, i) => new GeneratorSpec
         {
@@ -255,6 +429,30 @@ internal sealed class LevelEditorScene : IScene
         }
     }
 
+    private List<PadKey> KeypadKeys()
+    {
+        var keys = new List<PadKey>(12);
+        int bx = _panel.X + 12;
+        int bw = (_panel.Width - 24 - 16) / 3;
+        int bh = 38;
+        const int gap = 8;
+        for (int i = 0; i < 9; i++)
+        {
+            int col = i % 3;
+            int row = i / 3;
+            var rect = new Rectangle(bx + (col * (bw + gap)), _padTop + (row * (bh + gap)), bw, bh);
+            keys.Add(new PadKey(rect, (i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), PadAction.Digit, i + 1));
+        }
+
+        int r3 = _padTop + (3 * (bh + gap));
+        keys.Add(new PadKey(new Rectangle(bx, r3, bw, bh), "+/-", PadAction.Sign, 0));
+        keys.Add(new PadKey(new Rectangle(bx + (bw + gap), r3, bw, bh), "0", PadAction.Digit, 0));
+        keys.Add(new PadKey(new Rectangle(bx + (2 * (bw + gap)), r3, bw, bh), "DEL", PadAction.Backspace, 0));
+        return keys;
+    }
+
+    private static Point Point(Vector2 v) => new((int)v.X, (int)v.Y);
+
     public void Draw(Renderer r)
     {
         // grid
@@ -283,18 +481,101 @@ internal sealed class LevelEditorScene : IScene
             DrawCell(r, s.Pos, Palette.Sink, "S", string.Join(" ", s.Expected), s == _selSink);
         }
 
-        // top bar
-        r.FillRect(0, 0, r.Width, 60, Palette.Panel);
-        r.Text("LEVEL EDITOR", new Vector2(40, 18), 4f, Palette.Text);
-        r.TextCentered("TOOL: " + (_tool == EdTool.Generator ? "GENERATOR" : "SINK"), new Vector2(r.Width / 2f, 28), 3f, Palette.Accent);
-        r.Text("GRID " + _w + "x" + _h, new Vector2(r.Width - 200, 22), 3f, Palette.TextDim);
+        DrawTopBar(r);
+        DrawPanel(r);
 
-        r.Text(_message, new Vector2(40, 74), 2.6f, Palette.Item);
+        r.Text(_message, new Vector2(40, r.Height - 30), 2.2f, Palette.Item);
+    }
 
-        r.Text("CLICK PLACE/SELECT   G GENERATOR   S SINK   0-9 ADD VALUE   BACKSPACE DELETE VALUE   R ROTATE GEN",
-            new Vector2(40, r.Height - 52), 2f, Palette.TextDim);
-        r.Text("ARROWS RESIZE GRID   DEL REMOVE NODE   T TEST   CTRL+S SAVE   ESC MENU",
-            new Vector2(40, r.Height - 28), 2f, Palette.TextDim);
+    private void DrawTopBar(Renderer r)
+    {
+        r.FillRect(0, 0, r.Width, 56, Palette.Panel);
+        r.Text("LEVEL EDITOR", new Vector2(160, 16), 3.4f, Palette.Text);
+        _backBtn.Draw(r, _mouse);
+        _testBtn.Draw(r, _mouse);
+        _saveBtn.Draw(r, _mouse);
+
+        // toolbar
+        DrawToolButton(r, _genTool, _tool == EdTool.Generator, Palette.Generator);
+        DrawToolButton(r, _sinkTool, _tool == EdTool.Sink, Palette.Sink);
+
+        bool nameHover = _nameEditing || _nameField.Contains(Point(_mouse));
+        r.FillRect(_nameField.X, _nameField.Y, _nameField.Width, _nameField.Height, Palette.Panel);
+        r.RectOutline(_nameField.X, _nameField.Y, _nameField.Width, _nameField.Height, 2, _nameEditing ? Palette.Accent : (nameHover ? Palette.Accent : Palette.GridLine));
+        string shown = _name.Length == 0 ? "NAME (CLICK TO EDIT)" : _name.ToUpperInvariant() + (_nameEditing ? "_" : string.Empty);
+        r.Text("NAME", new Vector2(340, _nameField.Y + 10), 2.2f, Palette.TextDim);
+        r.Text(shown, new Vector2(_nameField.X + 10, _nameField.Y + 11), 2.4f, _name.Length == 0 ? Palette.TextDim : Palette.Text);
+    }
+
+    private void DrawToolButton(Renderer r, UiButton btn, bool active, Color color)
+    {
+        Rectangle rect = btn.Rect;
+        bool hover = btn.Hit(_mouse);
+        r.FillRect(rect.X, rect.Y, rect.Width, rect.Height, active ? Palette.PanelHi : Palette.Panel);
+        r.RectOutline(rect.X, rect.Y, rect.Width, rect.Height, active ? 3f : 2f, active ? color : (hover ? Palette.Accent : Palette.GridLine));
+        r.TextCentered(btn.Label, new Vector2(rect.Center.X, rect.Center.Y), 2.6f, active ? color : Palette.TextDim);
+    }
+
+    private void DrawPanel(Renderer r)
+    {
+        r.FillRect(_panel.X, _panel.Y, _panel.Width, _panel.Height, Palette.Panel);
+        r.RectOutline(_panel.X, _panel.Y, _panel.Width, _panel.Height, 2, Palette.GridLine);
+
+        StepperRow(r, _panel.Y + 30, "GRID WIDTH", _w, _wMinus, _wPlus);
+        StepperRow(r, _panel.Y + 66, "GRID HEIGHT", _h, _hMinus, _hPlus);
+        StepperRow(r, _panel.Y + 102, "MAX TICKS", _maxTicks, _tMinus, _tPlus);
+
+        r.FillRect(_panel.X + 10, _panel.Y + 142, _panel.Width - 20, 2, Palette.GridLine);
+
+        if (Selected() is not { } list)
+        {
+            r.TextCenteredFit("CLICK A CELL TO PLACE OR SELECT A NODE", new Vector2(_panel.Center.X, _panel.Y + 200), _panel.Width - 24, 22, Palette.TextDim);
+            return;
+        }
+
+        bool isGen = _selGen is not null;
+        Color col = isGen ? Palette.Generator : Palette.Sink;
+        string title = isGen ? "GENERATOR" : "SINK";
+        if (isGen)
+        {
+            title += "  OUT " + _selGen!.Output.ToString().ToUpperInvariant();
+        }
+
+        r.Text(title, new Vector2(_panel.X + 12, _panel.Y + 150), 2.4f, col);
+        r.Text(isGen ? "EMITS (ONE PER TICK):" : "EXPECTS (IN ORDER):", new Vector2(_panel.X + 12, _panel.Y + 176), 1.9f, Palette.TextDim);
+
+        // committed values
+        var valuesBox = new Rectangle(_panel.X + 12, _panel.Y + 196, _panel.Width - 24, 24);
+        r.RectOutline(valuesBox.X, valuesBox.Y, valuesBox.Width, valuesBox.Height, 1, Palette.GridLine);
+        string vals = list.Count == 0 ? "(empty)" : string.Join(" ", list);
+        r.TextCenteredFit(vals, new Vector2(valuesBox.Center.X, valuesBox.Center.Y), valuesBox.Width - 8, 18, Palette.Item);
+
+        // entry buffer
+        var entryBox = new Rectangle(_panel.X + 12, _panel.Y + 226, _panel.Width - 24, 28);
+        r.RectOutline(entryBox.X, entryBox.Y, entryBox.Width, entryBox.Height, 2, Palette.Accent);
+        r.TextCenteredFit(_entry.Length == 0 ? "TYPE A NUMBER" : _entry + "_", new Vector2(entryBox.Center.X, entryBox.Center.Y), entryBox.Width - 8, 20, _entry.Length == 0 ? Palette.TextDim : Palette.Text);
+
+        foreach (PadKey key in KeypadKeys())
+        {
+            new UiButton(key.Rect, key.Label).Draw(r, _mouse);
+        }
+
+        _addBtn.Draw(r, _mouse);
+        _clrBtn.Draw(r, _mouse);
+        if (isGen)
+        {
+            _rotateBtn.Draw(r, _mouse);
+        }
+
+        _removeBtn.Draw(r, _mouse);
+    }
+
+    private void StepperRow(Renderer r, int y, string label, int value, UiButton minus, UiButton plus)
+    {
+        r.Text(label, new Vector2(_panel.X + 12, y + 6), 2.1f, Palette.Text);
+        minus.Draw(r, _mouse);
+        plus.Draw(r, _mouse);
+        r.TextCentered(value.ToString(System.Globalization.CultureInfo.InvariantCulture), new Vector2((minus.Rect.Right + plus.Rect.Left) / 2f, y + 15), 2.6f, Palette.Item);
     }
 
     private void DrawCell(Renderer r, GridPoint cell, Color color, string icon, string sub, bool selected)

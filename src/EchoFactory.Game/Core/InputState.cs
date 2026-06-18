@@ -6,10 +6,24 @@ namespace EchoFactory.Game;
 /// <summary>Per-frame mouse + keyboard snapshot with edge detection.</summary>
 internal sealed class InputState
 {
+    private readonly System.Text.StringBuilder _pendingText = new();
     private KeyboardState _prevKeyboard;
     private KeyboardState _keyboard;
     private MouseState _prevMouse;
     private MouseState _mouse;
+    private string _typed = string.Empty;
+
+    /// <summary>Printable characters typed since the last frame (for text fields). Empty when none.</summary>
+    public string Typed => _typed;
+
+    /// <summary>Called from the window's TextInput event to buffer typed characters.</summary>
+    public void EnqueueText(char c)
+    {
+        if (!char.IsControl(c))
+        {
+            _pendingText.Append(c);
+        }
+    }
 
     public void Update()
     {
@@ -17,6 +31,9 @@ internal sealed class InputState
         _keyboard = Keyboard.GetState();
         _prevMouse = _mouse;
         _mouse = Microsoft.Xna.Framework.Input.Mouse.GetState();
+
+        _typed = _pendingText.ToString();
+        _pendingText.Clear();
     }
 
     public Vector2 Mouse => new(_mouse.X, _mouse.Y);

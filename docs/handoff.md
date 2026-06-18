@@ -25,7 +25,8 @@ Plně **data-driven** (JSON) a postavené na **deterministickém headless enginu
   **Intro splash s konfigurovatelným logem firmy** (obrázek z `branding/logo.png`,
   cesta/jméno/zap-vyp v nastavení) + **měnitelná ikonka .exe** (`branding/app.ico`).
   Vizuální TODO: vstupní porty math/splitteru + popisek/kometa portálu hotové.
-  **61 testů**, vše builduje. ~28 commitů.
+  **Editor levelů je teď klikací** (paleta, číselníky, on-screen klávesnice pro
+  hodnoty, textové pole jméno). **61 testů**, vše builduje. ~29 commitů.
 
 ## 2. Prostředí, build, test, push (DŮLEŽITÉ)
 
@@ -143,8 +144,12 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
      stranách) na math/splitter/filter/router/accumulator + splitter teď kreslí
      oba výstupy. **Neověřené lokálně — proklikat.** Zbývá už jen **zatočené pásy**
      (oblouk dle vstup/výstup).
-2. **Editor → klikací UI:** jméno levelu, max ticks, inventář, velikost gridu,
-   pořádný číselník (čísla > 9), tlačítko TEST, klikací paleta uzlů.
+2. 🟢 HOTOVO (z větší části) **Editor → klikací UI:** klikací paleta (GENERATOR/
+   SINK), tlačítka TEST/SAVE/MENU, **číselníky** (šířka/výška gridu, max ticks),
+   **textové pole jméno levelu** (Window.TextInput), a **on-screen klávesnice**
+   pro hodnoty — víceciferné i záporné (`+/-`, ADD, DEL, CLR). Klávesové zkratky
+   zůstávají. **Neověřené lokálně — proklikat.** Zbývá: editace **inventáře**
+   (povolené uzly + limity) a `description`/`order`/`par` přímo v editoru.
 3. **Kampaně + scroll:** pole `campaign` v levelu + editoru; výběr Play → kampaň →
    levely; neomezeně (scroll kolečkem).
 4. **Smyčky (design ⭐):** ✅ HOTOVO router (`RouterNode`) + akumulátor
@@ -173,6 +178,7 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
 | JSON formát / parsování | `Content/LevelLoader.cs`, `SolutionLoader.cs`, `Internal/Dtos.cs`, `Internal/JsonConfig.cs` |
 | ukládání levelu/řešení | `Content/LevelWriter.cs`, `SolutionWriter.cs` |
 | herní obrazovku / UX | `Game/Scenes/*` (hlavně `GameplayScene.cs`, `LevelEditorScene.cs`) |
+| textový vstup (pole) | `InputState.Typed` (plněno z `Window.TextInput` v `EchoGame`) |
 | kreslení / font | `Game/Rendering/Renderer.cs`, `VectorFont.cs`, `Palette.cs` |
 | žebříčky / anti-cheat | `Content/Leaderboard.cs`, `SubmissionVerifier.cs` |
 | levely/obsah | `data/levels/*`, `data/solutions/*`, `data/nodes/*` |
