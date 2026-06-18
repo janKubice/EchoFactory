@@ -133,6 +133,8 @@ internal sealed class BuildEditor
         NodeKind.Splitter => $"s{n.Splitter!.OutputA}{n.Splitter!.OutputB}{n.Splitter!.StartWithA}",
         NodeKind.Portal => $"p{n.Portal!.TimeOffset}{n.Portal!.Output}",
         NodeKind.Filter => $"f{n.Filter!.Comparison}{n.Filter!.Constant}{n.Filter!.Output}",
+        NodeKind.Router => $"r{n.Router!.Comparison}{n.Router!.Constant}{n.Router!.OutMatch}{n.Router!.OutElse}",
+        NodeKind.Accumulator => $"a{n.Accumulator!.ReleaseWhen}{n.Accumulator!.Constant}{n.Accumulator!.Output}{n.Accumulator!.Initial}",
         _ => "?",
     };
 }

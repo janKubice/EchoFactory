@@ -45,6 +45,7 @@ internal sealed class GameplayScene : IScene
     private readonly GridView _grid;
     private readonly Rectangle _timeline;
     private readonly Rectangle _compileBtn;
+    private readonly Rectangle _panelRect;
     private readonly Rectangle _cardRect;
     private readonly Rectangle _retryBtn;
     private readonly Rectangle _nextBtn;
@@ -64,6 +65,7 @@ internal sealed class GameplayScene : IScene
     private int _accConstant = 10;
     private Comparison _accComparison = Comparison.Ge;
     private PlayMode _mode = PlayMode.Build;
+    private GridPoint? _selected;
     private SimulationResult? _result;
     private SubmitOutcome? _submit;
     private float _playTime;
@@ -90,6 +92,7 @@ internal sealed class GameplayScene : IScene
         _grid = new GridView(_level.Grid, playArea);
         _timeline = new Rectangle(40, h - 64, w - 280, 18);
         _compileBtn = new Rectangle(w - 220, h - 132, 180, 48);
+        _panelRect = new Rectangle(w - 296, 120, 256, 332);
 
         const int cardW = 580;
         const int cardH = 300;
@@ -124,6 +127,10 @@ internal sealed class GameplayScene : IScene
             if (_mode == PlayMode.Playback)
             {
                 _mode = PlayMode.Build;
+            }
+            else if (_selected is not null)
+            {
+                _selected = null;
             }
             else
             {
@@ -207,14 +214,72 @@ internal sealed class GameplayScene : IScene
             }
         }
 
-        if (overGrid && input.LeftDown && CanPlaceTool(_tool, cell) && _editor.Place(MakeNode(cell)))
+        // Per-node config panel: while a node is selected, its panel intercepts clicks.
+        if (_selected is { } sel && _editor.At(sel) is { } selNode)
         {
+            if (input.LeftClick)
+            {
+                foreach (var pc in PanelControls(selNode, sel))
+                {
+                    if (pc.Rect.Contains(Point(_mouse)))
+                    {
+                        ApplyPanel(pc, sel);
+                        return;
+                    }
+                }
+
+                if (_panelRect.Contains(Point(_mouse)))
+                {
+                    return; // swallow clicks on the panel background
+                }
+            }
+        }
+        else
+        {
+            _selected = null; // selected node was removed/undone
+        }
+
+        // Click a placed node to edit it; drag on empty cells to place.
+        if (overGrid && input.LeftClick && _editor.At(cell) is not null)
+        {
+            _selected = cell;
+            _scenes.Play(Sfx.Click);
+            return;
+        }
+
+        if (overGrid && input.LeftDown && _editor.At(cell) is null && CanPlaceTool(_tool, cell) && _editor.Place(MakeNode(cell)))
+        {
+            _selected = cell;
             _scenes.Play(Sfx.Place);
         }
 
         if (overGrid && input.RightClick && _editor.Remove(cell))
         {
+            if (_selected == cell)
+            {
+                _selected = null;
+            }
+
             _scenes.Play(Sfx.Remove);
+        }
+    }
+
+    private void ApplyPanel(PanelControl ctrl, GridPoint pos)
+    {
+        if (ctrl.Delete)
+        {
+            if (_editor.Remove(pos))
+            {
+                _selected = null;
+                _scenes.Play(Sfx.Remove);
+            }
+
+            return;
+        }
+
+        if (ctrl.Result is { } updated && _editor.Place(updated))
+        {
+            _scenes.Play(Sfx.Click);
         }
     }
 
@@ -380,6 +445,7 @@ internal sealed class GameplayScene : IScene
         if (_mode == PlayMode.Build)
         {
             DrawBuildHud(r);
+            DrawConfigPanel(r);
         }
         else
         {
@@ -637,7 +703,7 @@ internal sealed class GameplayScene : IScene
 
         r.Text("TOOL: " + ConfigLabel() + "      +/- ADJUST   TAB CYCLE   R ROTATE (" + DirName(_dir) + ")",
             new Vector2(40, r.Height - 50), 2f, Palette.Accent);
-        r.Text("LEFT-DRAG PLACE   RIGHT REMOVE   CTRL+Z/Y UNDO/REDO   L LOAD   X CLEAR   SPACE COMPILE   ESC BACK",
+        r.Text("DRAG EMPTY CELLS = PLACE   CLICK A NODE = CONFIG PANEL   RIGHT REMOVE   CTRL+Z/Y UNDO   L LOAD   X CLEAR   SPACE COMPILE",
             new Vector2(40, r.Height - 28), 2f, Palette.TextDim);
     }
 
@@ -653,6 +719,155 @@ internal sealed class GameplayScene : IScene
         Tool.Accumulator => "SUM release " + CompSym(_accComparison) + _accConstant + " -> " + DirName(_dir),
         _ => string.Empty,
     };
+
+    // ---- per-node config panel ----
+
+    private readonly record struct PanelControl(Rectangle Rect, string Label, PlacedNode? Result, bool Delete);
+
+    private List<PanelControl> PanelControls(PlacedNode n, GridPoint p)
+    {
+        var raw = new List<(string Label, PlacedNode? Node, bool Del)>();
+
+        switch (n.Kind)
+        {
+            case NodeKind.Belt:
+                raw.Add(("DIR <", PlacedNode.Belt(p, Ccw(n.Direction)), false));
+                raw.Add(("DIR >", PlacedNode.Belt(p, Cw(n.Direction)), false));
+                break;
+            case NodeKind.Math:
+                var m = n.Math!;
+                if (m.Constant.HasValue)
+                {
+                    raw.Add(("VAL -", WithMath(p, m.Operation, m.Output, NudgeNonZero(m.Constant.Value, -1)), false));
+                    raw.Add(("VAL +", WithMath(p, m.Operation, m.Output, NudgeNonZero(m.Constant.Value, +1)), false));
+                }
+
+                raw.Add(("OUT <", WithMath(p, m.Operation, Ccw(m.Output), m.Constant), false));
+                raw.Add(("OUT >", WithMath(p, m.Operation, Cw(m.Output), m.Constant), false));
+                break;
+            case NodeKind.Splitter:
+                var s = n.Splitter!;
+                raw.Add(("OUT A >", PlacedNode.Split(p, new SplitterConfig { OutputA = Cw(s.OutputA), OutputB = s.OutputB, StartWithA = s.StartWithA }), false));
+                raw.Add(("OUT B >", PlacedNode.Split(p, new SplitterConfig { OutputA = s.OutputA, OutputB = Cw(s.OutputB), StartWithA = s.StartWithA }), false));
+                raw.Add(("1ST " + (s.StartWithA ? "A" : "B"), PlacedNode.Split(p, new SplitterConfig { OutputA = s.OutputA, OutputB = s.OutputB, StartWithA = !s.StartWithA }), false));
+                break;
+            case NodeKind.Portal:
+                var pt = n.Portal!;
+                raw.Add(("OFF -", PlacedNode.TimePortal(p, new PortalConfig { TimeOffset = NudgeNonZero(pt.TimeOffset, -1), Output = pt.Output }), false));
+                raw.Add(("OFF +", PlacedNode.TimePortal(p, new PortalConfig { TimeOffset = NudgeNonZero(pt.TimeOffset, +1), Output = pt.Output }), false));
+                raw.Add(("OUT <", PlacedNode.TimePortal(p, new PortalConfig { TimeOffset = pt.TimeOffset, Output = Ccw(pt.Output) }), false));
+                raw.Add(("OUT >", PlacedNode.TimePortal(p, new PortalConfig { TimeOffset = pt.TimeOffset, Output = Cw(pt.Output) }), false));
+                break;
+            case NodeKind.Filter:
+                var f = n.Filter!;
+                raw.Add(("COND " + CompSym(NextComp(f.Comparison)), PlacedNode.Gate(p, new FilterConfig { Comparison = NextComp(f.Comparison), Constant = f.Constant, Output = f.Output }), false));
+                raw.Add(("K -", PlacedNode.Gate(p, new FilterConfig { Comparison = f.Comparison, Constant = f.Constant - 1, Output = f.Output }), false));
+                raw.Add(("K +", PlacedNode.Gate(p, new FilterConfig { Comparison = f.Comparison, Constant = f.Constant + 1, Output = f.Output }), false));
+                raw.Add(("OUT >", PlacedNode.Gate(p, new FilterConfig { Comparison = f.Comparison, Constant = f.Constant, Output = Cw(f.Output) }), false));
+                break;
+            case NodeKind.Router:
+                var rt = n.Router!;
+                raw.Add(("COND " + CompSym(NextComp(rt.Comparison)), WithRouter(p, NextComp(rt.Comparison), rt.Constant, rt.OutMatch, rt.OutElse), false));
+                raw.Add(("K -", WithRouter(p, rt.Comparison, rt.Constant - 1, rt.OutMatch, rt.OutElse), false));
+                raw.Add(("K +", WithRouter(p, rt.Comparison, rt.Constant + 1, rt.OutMatch, rt.OutElse), false));
+                raw.Add(("MATCH >", WithRouter(p, rt.Comparison, rt.Constant, Cw(rt.OutMatch), rt.OutElse), false));
+                raw.Add(("ELSE >", WithRouter(p, rt.Comparison, rt.Constant, rt.OutMatch, Cw(rt.OutElse)), false));
+                break;
+            case NodeKind.Accumulator:
+                var ac = n.Accumulator!;
+                raw.Add(("REL " + CompSym(NextComp(ac.ReleaseWhen)), WithAcc(p, NextComp(ac.ReleaseWhen), ac.Constant, ac.Output, ac.Initial), false));
+                raw.Add(("K -", WithAcc(p, ac.ReleaseWhen, ac.Constant - 1, ac.Output, ac.Initial), false));
+                raw.Add(("K +", WithAcc(p, ac.ReleaseWhen, ac.Constant + 1, ac.Output, ac.Initial), false));
+                raw.Add(("INIT -", WithAcc(p, ac.ReleaseWhen, ac.Constant, ac.Output, ac.Initial - 1), false));
+                raw.Add(("INIT +", WithAcc(p, ac.ReleaseWhen, ac.Constant, ac.Output, ac.Initial + 1), false));
+                raw.Add(("OUT >", WithAcc(p, ac.ReleaseWhen, ac.Constant, Cw(ac.Output), ac.Initial), false));
+                break;
+            default:
+                break;
+        }
+
+        raw.Add(("DELETE", null, true));
+
+        var list = new List<PanelControl>(raw.Count);
+        int bw = (_panelRect.Width - 30) / 2;
+        for (int i = 0; i < raw.Count; i++)
+        {
+            int col = i % 2;
+            int row = i / 2;
+            var rect = new Rectangle(_panelRect.X + 10 + (col * (bw + 10)), _panelRect.Y + 78 + (row * 48), bw, 40);
+            list.Add(new PanelControl(rect, raw[i].Label, raw[i].Node, raw[i].Del));
+        }
+
+        return list;
+    }
+
+    private void DrawConfigPanel(Renderer r)
+    {
+        if (_selected is not { } sel || _editor.At(sel) is not { } node)
+        {
+            r.Text("CLICK A PLACED NODE TO CONFIGURE IT", new Vector2(_panelRect.X, _panelRect.Y), 1.8f, Palette.TextDim);
+            return;
+        }
+
+        // Highlight the selected cell on the grid.
+        Vector2 tl = _grid.CellTopLeft(sel);
+        r.RectOutline(tl.X + 1, tl.Y + 1, _grid.CellSize - 2, _grid.CellSize - 2, 3, Palette.Accent);
+
+        r.FillRect(_panelRect.X, _panelRect.Y, _panelRect.Width, _panelRect.Height, Palette.Panel);
+        r.RectOutline(_panelRect.X, _panelRect.Y, _panelRect.Width, _panelRect.Height, 2, Palette.Accent);
+
+        Color col = ToolColor(ToolOf(node));
+        r.Text(NodeTitle(node), new Vector2(_panelRect.X + 12, _panelRect.Y + 12), 2.6f, col);
+        r.TextCenteredFit(NodeSummary(node), new Vector2(_panelRect.Center.X, _panelRect.Y + 52), _panelRect.Width - 20, 22, Palette.Text);
+
+        foreach (var ctrl in PanelControls(node, sel))
+        {
+            new UiButton(ctrl.Rect, ctrl.Label).Draw(r, _mouse);
+        }
+    }
+
+    private static string NodeTitle(PlacedNode n) => n.Kind switch
+    {
+        NodeKind.Belt => "BELT",
+        NodeKind.Math => n.Math!.Constant.HasValue ? "MATH (UNARY)" : "MATH (ADD)",
+        NodeKind.Splitter => "SPLITTER",
+        NodeKind.Portal => "PORTAL",
+        NodeKind.Filter => "FILTER",
+        NodeKind.Router => "ROUTER",
+        NodeKind.Accumulator => "ACCUMULATOR",
+        _ => "NODE",
+    };
+
+    private static string NodeSummary(PlacedNode n) => n.Kind switch
+    {
+        NodeKind.Belt => "FLOW " + DirName(n.Direction),
+        NodeKind.Math => MathIcon(n.Math!.Operation) + (n.Math!.Constant is { } c ? Num(c) : string.Empty) + " -> " + DirName(n.Math!.Output),
+        NodeKind.Splitter => "A " + DirName(n.Splitter!.OutputA) + "  B " + DirName(n.Splitter!.OutputB),
+        NodeKind.Portal => "t" + (n.Portal!.TimeOffset >= 0 ? "+" : string.Empty) + Num(n.Portal!.TimeOffset) + " -> " + DirName(n.Portal!.Output),
+        NodeKind.Filter => "pass " + CompSym(n.Filter!.Comparison) + Num(n.Filter!.Constant) + " -> " + DirName(n.Filter!.Output),
+        NodeKind.Router => CompSym(n.Router!.Comparison) + Num(n.Router!.Constant) + " ? " + DirName(n.Router!.OutMatch) + " : " + DirName(n.Router!.OutElse),
+        NodeKind.Accumulator => "rel " + CompSym(n.Accumulator!.ReleaseWhen) + Num(n.Accumulator!.Constant) + " init " + Num(n.Accumulator!.Initial) + " -> " + DirName(n.Accumulator!.Output),
+        _ => string.Empty,
+    };
+
+    private static PlacedNode WithMath(GridPoint p, MathOperation op, Direction outDir, int? constant) =>
+        PlacedNode.MathOp(p, new MathConfig { Operation = op, Output = outDir, Constant = constant });
+
+    private static PlacedNode WithRouter(GridPoint p, Comparison c, int k, Direction match, Direction els) =>
+        PlacedNode.Route(p, new RouterConfig { Comparison = c, Constant = k, OutMatch = match, OutElse = els });
+
+    private static PlacedNode WithAcc(GridPoint p, Comparison c, int k, Direction outDir, int init) =>
+        PlacedNode.Accumulate(p, new AccumulatorConfig { ReleaseWhen = c, Constant = k, Output = outDir, Initial = init });
+
+    private static Comparison NextComp(Comparison c) => (Comparison)(((int)c + 1) % 6);
+
+    private static int NudgeNonZero(int v, int delta)
+    {
+        int r = v + delta;
+        return r == 0 ? v + (2 * delta) : r;
+    }
+
+    private static string Num(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     private void DrawPlaybackHud(Renderer r)
     {
