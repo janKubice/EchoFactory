@@ -39,6 +39,13 @@ internal sealed class LevelEditorScene : IScene
         Backspace,
     }
 
+    private enum TextField
+    {
+        None,
+        Name,
+        Campaign,
+    }
+
     private readonly record struct PadKey(Rectangle Rect, string Label, PadAction Action, int Digit);
 
     private readonly SceneManager _scenes;
@@ -48,8 +55,9 @@ internal sealed class LevelEditorScene : IScene
     private int _h = 6;
     private int _maxTicks = 60;
     private string _name = string.Empty;
+    private string _campaign = string.Empty;
     private string _entry = string.Empty;
-    private bool _nameEditing;
+    private TextField _editing = TextField.None;
     private GridView _grid;
     private EdTool _tool = EdTool.Generator;
     private EdGen? _selGen;
@@ -65,6 +73,7 @@ internal sealed class LevelEditorScene : IScene
     private readonly UiButton _genTool;
     private readonly UiButton _sinkTool;
     private readonly Rectangle _nameField;
+    private readonly Rectangle _campaignField;
     private readonly UiButton _wMinus;
     private readonly UiButton _wPlus;
     private readonly UiButton _hMinus;
@@ -93,7 +102,11 @@ internal sealed class LevelEditorScene : IScene
 
         _genTool = new UiButton(new Rectangle(16, 64, 150, 38), "GENERATOR");
         _sinkTool = new UiButton(new Rectangle(174, 64, 150, 38), "SINK");
-        _nameField = new Rectangle(420, 64, _panel.X - 420 - 20, 38);
+        int fieldsLeft = 340;
+        int fieldsW = (_panel.X - 20) - fieldsLeft;
+        int half = (fieldsW - 12) / 2;
+        _nameField = new Rectangle(fieldsLeft, 64, half, 38);
+        _campaignField = new Rectangle(fieldsLeft + half + 12, 64, half, 38);
 
         int px = _panel.X + 12;
         int valX = _panel.X + 150;
@@ -120,10 +133,10 @@ internal sealed class LevelEditorScene : IScene
         _mouse = input.Mouse;
         bool ctrl = input.KeyDown(Keys.LeftControl) || input.KeyDown(Keys.RightControl);
 
-        // Name text field captures all typing while active.
-        if (_nameEditing)
+        // A text field captures all typing while active.
+        if (_editing != TextField.None)
         {
-            UpdateNameEditing(input);
+            UpdateFieldEditing(input);
             return;
         }
 
@@ -141,7 +154,8 @@ internal sealed class LevelEditorScene : IScene
             if (_saveBtn.Hit(_mouse)) { Save(); return; }
             if (_genTool.Hit(_mouse)) { _tool = EdTool.Generator; _scenes.Play(Sfx.Click); return; }
             if (_sinkTool.Hit(_mouse)) { _tool = EdTool.Sink; _scenes.Play(Sfx.Click); return; }
-            if (_nameField.Contains(Point(_mouse))) { _nameEditing = true; _scenes.Play(Sfx.Click); return; }
+            if (_nameField.Contains(Point(_mouse))) { _editing = TextField.Name; _scenes.Play(Sfx.Click); return; }
+            if (_campaignField.Contains(Point(_mouse))) { _editing = TextField.Campaign; _scenes.Play(Sfx.Click); return; }
 
             if (_wMinus.Hit(_mouse)) { Resize(_w - 1, _h); return; }
             if (_wPlus.Hit(_mouse)) { Resize(_w + 1, _h); return; }
@@ -186,25 +200,36 @@ internal sealed class LevelEditorScene : IScene
         }
     }
 
-    private void UpdateNameEditing(InputState input)
+    private void UpdateFieldEditing(InputState input)
     {
+        string current = _editing == TextField.Name ? _name : _campaign;
         foreach (char ch in input.Typed)
         {
-            if ((char.IsLetterOrDigit(ch) || ch is ' ' or '_' or '-') && _name.Length < 24)
+            if ((char.IsLetterOrDigit(ch) || ch is ' ' or '_' or '-') && current.Length < 24)
             {
-                _name += ch;
+                current += ch;
             }
         }
 
-        if (input.KeyPressed(Keys.Back) && _name.Length > 0)
+        if (input.KeyPressed(Keys.Back) && current.Length > 0)
         {
-            _name = _name[..^1];
+            current = current[..^1];
         }
 
-        if (input.KeyPressed(Keys.Enter) || input.KeyPressed(Keys.Escape) ||
-            (input.LeftClick && !_nameField.Contains(Point(_mouse))))
+        if (_editing == TextField.Name)
         {
-            _nameEditing = false;
+            _name = current;
+        }
+        else
+        {
+            _campaign = current;
+        }
+
+        Rectangle active = _editing == TextField.Name ? _nameField : _campaignField;
+        if (input.KeyPressed(Keys.Enter) || input.KeyPressed(Keys.Escape) ||
+            (input.LeftClick && !active.Contains(Point(_mouse))))
+        {
+            _editing = TextField.None;
         }
     }
 
@@ -353,6 +378,7 @@ internal sealed class LevelEditorScene : IScene
     {
         Id = id,
         Name = string.IsNullOrWhiteSpace(_name) ? id : _name.Trim(),
+        Campaign = _campaign.Trim(),
         Grid = new GridSize(_w, _h),
         MaxTicks = _maxTicks,
         MaxTemporalPasses = 5,
@@ -499,12 +525,18 @@ internal sealed class LevelEditorScene : IScene
         DrawToolButton(r, _genTool, _tool == EdTool.Generator, Palette.Generator);
         DrawToolButton(r, _sinkTool, _tool == EdTool.Sink, Palette.Sink);
 
-        bool nameHover = _nameEditing || _nameField.Contains(Point(_mouse));
-        r.FillRect(_nameField.X, _nameField.Y, _nameField.Width, _nameField.Height, Palette.Panel);
-        r.RectOutline(_nameField.X, _nameField.Y, _nameField.Width, _nameField.Height, 2, _nameEditing ? Palette.Accent : (nameHover ? Palette.Accent : Palette.GridLine));
-        string shown = _name.Length == 0 ? "NAME (CLICK TO EDIT)" : _name.ToUpperInvariant() + (_nameEditing ? "_" : string.Empty);
-        r.Text("NAME", new Vector2(340, _nameField.Y + 10), 2.2f, Palette.TextDim);
-        r.Text(shown, new Vector2(_nameField.X + 10, _nameField.Y + 11), 2.4f, _name.Length == 0 ? Palette.TextDim : Palette.Text);
+        DrawTextField(r, _nameField, TextField.Name, _name, "NAME");
+        DrawTextField(r, _campaignField, TextField.Campaign, _campaign, "CAMPAIGN");
+    }
+
+    private void DrawTextField(Renderer r, Rectangle field, TextField which, string value, string placeholder)
+    {
+        bool active = _editing == which;
+        bool hover = active || field.Contains(Point(_mouse));
+        r.FillRect(field.X, field.Y, field.Width, field.Height, Palette.Panel);
+        r.RectOutline(field.X, field.Y, field.Width, field.Height, 2, hover ? Palette.Accent : Palette.GridLine);
+        string shown = value.Length == 0 ? placeholder : value.ToUpperInvariant() + (active ? "_" : string.Empty);
+        r.TextCenteredFit(shown, new Vector2(field.Center.X, field.Center.Y), field.Width - 16, 18, value.Length == 0 ? Palette.TextDim : Palette.Text);
     }
 
     private void DrawToolButton(Renderer r, UiButton btn, bool active, Color color)

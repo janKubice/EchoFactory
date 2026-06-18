@@ -788,9 +788,9 @@ internal sealed class GameplayScene : IScene
         var btn = new UiButton(_compileBtn, "COMPILE");
         btn.Draw(r, _mouse);
 
-        r.Text("TOOL: " + ConfigLabel() + "      +/- ADJUST   TAB CYCLE   R ROTATE (" + DirName(_dir) + ")",
+        r.Text("TOOL: " + ConfigLabel() + "      R ROTATE (" + DirName(_dir) + ")      H HELP",
             new Vector2(40, r.Height - 50), 2f, Palette.Accent);
-        r.Text("DRAG EMPTY CELLS = PLACE   CLICK A NODE = CONFIG PANEL   RIGHT REMOVE   CTRL+Z/Y UNDO   L LOAD   X CLEAR   SPACE COMPILE",
+        r.Text("DRAG EMPTY CELLS = PLACE   CLICK A PLACED NODE = CONFIG PANEL   RIGHT REMOVE   CTRL+Z/Y UNDO   L LOAD   X CLEAR   SPACE COMPILE",
             new Vector2(40, r.Height - 28), 2f, Palette.TextDim);
     }
 

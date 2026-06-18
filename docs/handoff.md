@@ -26,8 +26,9 @@ Plně **data-driven** (JSON) a postavené na **deterministickém headless enginu
   cesta/jméno/zap-vyp v nastavení) + **měnitelná ikonka .exe** (`branding/app.ico`).
   Vizuální TODO: vstupní porty math/splitteru + popisek/kometa portálu hotové.
   **Editor levelů je teď klikací** (paleta, číselníky, on-screen klávesnice pro
-  hodnoty, textové pole jméno). **Kampaně** (Play → hub → levely) + **animované
-  pozadí menu**. **61 testů**, vše builduje. ~31 commitů.
+  hodnoty, textová pole jméno + kampaň). **Kampaně** (Play → hub → levely) +
+  **animované pozadí menu**. Z editoru TEST → ESC zpět do editoru. **61 testů**,
+  vše builduje. ~33 commitů.
 
 ## 2. Prostředí, build, test, push (DŮLEŽITÉ)
 
@@ -149,13 +150,14 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
    SINK), tlačítka TEST/SAVE/MENU, **číselníky** (šířka/výška gridu, max ticks),
    **textové pole jméno levelu** (Window.TextInput), a **on-screen klávesnice**
    pro hodnoty — víceciferné i záporné (`+/-`, ADD, DEL, CLR). Klávesové zkratky
-   zůstávají. **Neověřené lokálně — proklikat.** Zbývá: editace **inventáře**
-   (povolené uzly + limity) a `description`/`order`/`par` přímo v editoru.
+   zůstávají. Pole **jméno i kampaň** editovatelná v editoru (custom level jde do
+   zvolené kampaně). **Neověřené lokálně — proklikat.** Zbývá: editace
+   **inventáře** (povolené uzly + limity) a `description`/`order`/`par`.
 3. ✅ HOTOVO **Kampaně + scroll:** pole `campaign` v levelu (loader/writer/DTO),
    tok **Play → `CampaignSelectScene` (hub s progressem) → `LevelSelectScene`
    filtrovaný kampaní**. 15 levelů rozděleno do Basics / Logic / Time & Loops
-   (řazení kampaní dle min `order`). Výběr levelů **scrolluje kolečkem**. **Zbývá:**
-   nastavení kampaně v editoru (custom levely teď padají do „Other").
+   (řazení kampaní dle min `order`). Výběr levelů **scrolluje kolečkem**. Kampaň
+   **lze nastavit i v editoru** (prázdná → „Other"). ✅ HOTOVO.
 4. **Smyčky (design ⭐):** ✅ HOTOVO router (`RouterNode`) + akumulátor
    (`AccumulatorNode`) + demo levely `lvl_loop_counter_01`, `lvl_tally_01` a
    paleta tools 7/8. Hráč 2026-06-18 zvolil „obojí". Portál teď ukazuje **popisek
