@@ -13,6 +13,9 @@ public sealed class GameSettings
 
     public float PlaybackSpeed { get; set; } = 3.5f;
 
+    /// <summary>Borderless fullscreen (the virtual 1280x720 view is letterboxed to the screen).</summary>
+    public bool Fullscreen { get; set; }
+
     /// <summary>Show the company/studio intro splash on launch.</summary>
     public bool ShowIntro { get; set; } = true;
 

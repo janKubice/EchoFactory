@@ -12,9 +12,20 @@ backlog. Toto je **živý seznam úkolů** pro frontend/UX a design. Inženýrsk
 **Stav:** 🔴 todo · 🟡 existuje, ale špatné/neúplné · 🟢 hotovo
 
 ## Playtest 2026-06-18 (hráč, build s panelem/kampaněmi)
-1. 🟡 **Config panel uzlu občas překrývá mapu.** Provizorně vyřešeno: grid teď
-   **rezervuje pravý pruh** pro panel (nepřekrývá se). Dlouhodobě: **fullscreen**
-   + volitelně **pan/grab mapy** (kamera-offset v `GridView`). → viz bod 1 níže.
+1. 🟢 **Config panel uzlu překrýval mapu.** Grid teď **rezervuje pravý pruh** pro
+   panel. Navíc přidán **fullscreen** (borderless). Pan/grab mapy zatím netřeba.
+
+### Playtest 2026-06-18 (2) — z editoru test/portál
+- 🟢 **Editor-test top bar se překrýval** („ESC = BACK" přes NODES). Hint je teď
+  v objective-stripu, ne v top baru.
+- 🟢 **Texty v HUD se nevešly** (popis levelu, portál). `TextFitLeft` → zmenší na
+  šířku; objective strip i panel se vejdou.
+- 🟢 **Fullscreen** přidán (Settings → FULLSCREEN). Virtuální 1280×720 +
+  letterbox, myš mapovaná → nic se nerozbije.
+- 🟢 **Portál vizualizace + tutoriál**: časový oblouk PAST/FUTURE na gridu +
+  `lvl_portal_01` („First Portal"). POZOR: exit = `T - offset`, **+ = minulost**
+  (popisy opraveny, dřív byly obráceně).
+- 🟢 **Build na Windows**: `scripts\publish.cmd` (bash `.sh` v cmd neběží).
 2. 🟢 **Help overlay měl překrývající se texty.** Opraveno: název a popis uzlu
    jsou teď na oddělených řádcích s ohraničenou výškou (`DrawHelpOverlay`).
 3. 🟢 **Z editoru po TEST nešlo zpět do build/editoru.** Opraveno: `GameplayScene`

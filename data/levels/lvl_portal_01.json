@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "id": "lvl_portal_01",
+  "name": "First Portal",
+  "order": 11,
+  "campaign": "Time & Loops",
+  "description": "Meet the portal: a time machine. Drop ONE portal so the 5 reaches the goal. A POSITIVE offset sends the item into the PAST. (Press H for help.)",
+  "grid": { "width": 3, "height": 3 },
+  "max_ticks": 12,
+  "max_temporal_passes": 5,
+  "par": { "ticks": 2, "footprint": 1 },
+  "inventory": {
+    "mode": "whitelist",
+    "allowed": ["node_portal"],
+    "limits": { "node_portal": 1 }
+  },
+  "fixed_nodes": [
+    {
+      "id": "gen",
+      "type": "generator",
+      "position": { "x": 0, "y": 1 },
+      "direction": "right",
+      "schedule": [ { "tick": 0, "value": 5 } ]
+    },
+    {
+      "id": "sink",
+      "type": "sink",
+      "position": { "x": 2, "y": 1 },
+      "expected": [5]
+    }
+  ]
+}

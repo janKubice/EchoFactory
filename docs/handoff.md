@@ -17,7 +17,7 @@ Plně **data-driven** (JSON) a postavené na **deterministickém headless enginu
   `janKubice/EchoFactory`. Hlavní/jediná větev (zatím se nemerguje do main).
 - **Komunikace s uživatelem: ČESKY.** Kód, JSON klíče, commity, identifikátory:
   **anglicky** (viz [glossary.md](./glossary.md)).
-- **Stav (2026-06-18):** hratelná hra s 15 levely (kampaň s onboardingem),
+- **Stav (2026-06-18):** hratelná hra s 16 levely (kampaň s onboardingem),
   10 typy uzlů (vč. **router** + **accumulator** pro procesní smyčky), editorem
   levelů, lokálními žebříčky, zvuky, nastavením, undo/redo, anti-cheat.
   **Klikací config panel uzlů** (klik na uzel → panel) + **in-game help overlay**
@@ -27,8 +27,11 @@ Plně **data-driven** (JSON) a postavené na **deterministickém headless enginu
   Vizuální TODO: vstupní porty math/splitteru + popisek/kometa portálu hotové.
   **Editor levelů je teď klikací** (paleta, číselníky, on-screen klávesnice pro
   hodnoty, textová pole jméno + kampaň). **Kampaně** (Play → hub → levely) +
-  **animované pozadí menu**. Z editoru TEST → ESC zpět do editoru. **61 testů**,
-  vše builduje. ~33 commitů.
+  **animované pozadí menu**. Z editoru TEST → ESC zpět do editoru. **Fullscreen**
+  (borderless přes virtuální 1280×720 render-target + letterbox, mapuje i myš).
+  **Portál**: vizualizace (časový oblouk PAST/FUTURE) + gentle tutoriál
+  `lvl_portal_01`. Texty v HUD se teď vejdou (fit-to-width). **61 testů**,
+  vše builduje. ~35 commitů.
 
 ## 2. Prostředí, build, test, push (DŮLEŽITÉ)
 
@@ -111,7 +114,7 @@ Testy: `EchoFactory.Core.Tests` (28), `EchoFactory.Content.Tests` (20),
 - `Settings` (`GameSettings` + `SettingsStore`, JSON vedle exe).
 
 **Data (`/data`)** — `nodes/` (15 def, každý s `description` pro kodex),
-`levels/` (15), `solutions/` (15).
+`levels/` (16), `solutions/` (16).
 Formát: [content-format.md](./content-format.md). Levely se kopírují k exe (csproj
 `<None Include="..\..\data\**">`).
 
@@ -162,18 +165,19 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
    (`AccumulatorNode`) + demo levely `lvl_loop_counter_01`, `lvl_tally_01` a
    paleta tools 7/8. Hráč 2026-06-18 zvolil „obojí". Portál teď ukazuje **popisek
    `t+N`/`t-N`** + kometu v playbacku a help overlay ho vysvětluje slovně.
-   **Zbývá:** těžší kombinované smyčkové levely (router+akumulátor) a případně
-   dedikovaný tutoriálový level portálu. Nový gentle level `lvl_route_01` učí
-   router (2 výstupy). GUI tools 7/8 + panel + overlay zatím **neověřené lokálně**.
-5. **Vizuál:** ✅ vstupní porty + popisek portálu + **animované pozadí menu**
-   (`MenuBackground` — plovoucí pásy/chevrony/items za UI menu scén) hotové;
-   **zbývá zatočené pásy** (oblouk dle vstup/výstup), hezčí tlačítka (mřížka/
-   ikony). Intro splash s logem viz §Branding níže.
-6. **Build/nastavení:** 🟡 **EXE publish HOTOVO** — `scripts/publish.sh <rid>`
-   dělá self-contained single-file build (ověřeno win-x64: exe + SDL/OpenAL +
-   loose `data/`+`branding/`), návod v README. **Zbývá:** nastavení
-   **fullscreen/windowed** + rozlišení (aplikovat na `GraphicsDeviceManager`,
-   přepočítat layouty scén — berou `ScreenW/H`).
+   Gentle tutoriály: `lvl_route_01` (router, 2 výstupy) a `lvl_portal_01`
+   („First Portal" — pozitivní offset = minulost). Portál má na gridu **časový
+   oblouk + PAST/FUTURE** popisek. POZOR semantika: exit-tick = `T - offset`,
+   tj. **+offset = do minulosti**. **Zbývá:** těžší kombinované smyčkové levely.
+5. **Vizuál:** ✅ vstupní porty + portál (oblouk PAST/FUTURE) + **animované pozadí
+   menu** (`MenuBackground`) hotové; **zbývá zatočené pásy** (oblouk dle
+   vstup/výstup), hezčí tlačítka. Intro splash s logem viz §Branding níže.
+6. **Build/nastavení:** ✅ **EXE publish** (`scripts/publish.sh` + `publish.cmd`
+   pro Windows, návod v README; ověřeno win-x64) **+ fullscreen** HOTOVO:
+   borderless přes **virtuální 1280×720 render-target** (`EchoGame`) letterboxně
+   blitnutý do okna; myš se mapuje zpět (`InputState.SetViewport`), takže layouty
+   (`ScreenW/H` = 1280×720) zůstávají beze změny. Toggle v Settings. **Zbývá:**
+   volitelně víc rozlišení / custom rozlišení.
 
 > Bod 4 je **designové rozhodnutí** — než kódovat router/akumulátor, ptej se
 > uživatele (AskUserQuestion): chce portál jako prostorovou smyčku, nebo přidat

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "level_id": "lvl_portal_01",
+  "placed_nodes": [
+    { "node": "node_portal", "position": { "x": 1, "y": 1 }, "direction": "right", "time_offset": 1 }
+  ]
+}

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "node_portal",
   "name": "Time Portal",
-  "description": "A time machine for items. An item that enters at tick T leaves the output at tick T + offset. A NEGATIVE offset sends it into the PAST, so its copy can reach the goal BEFORE the original was even sent - that is a time loop. The simulation replays the loop until it is consistent; loops that can never agree are a temporal paradox.",
+  "description": "A time machine for items. An item entering at tick T leaves the output at tick T - offset. A POSITIVE offset sends it into the PAST, so it can reach the goal BEFORE the original was sent - a time loop. A negative offset is a delay into the FUTURE. The sim replays the loop until consistent; loops that never agree are a temporal paradox.",
   "type": "portal",
   "category": "Temporal",
   "tick_cost": 1,

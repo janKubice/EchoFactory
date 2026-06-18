@@ -12,6 +12,7 @@ internal sealed class SettingsScene : IScene
     private readonly Rectangle _musicTrack;
     private readonly Rectangle _gridToggle;
     private readonly Rectangle _introToggle;
+    private readonly Rectangle _fullscreenToggle;
     private readonly UiButton _backBtn;
     private Vector2 _mouse;
 
@@ -29,6 +30,7 @@ internal sealed class SettingsScene : IScene
         _musicTrack = new Rectangle(sx, y + 160, sw, 16);
         _gridToggle = new Rectangle(sx, y + 230, sw, 46);
         _introToggle = new Rectangle(sx, y + 286, sw, 46);
+        _fullscreenToggle = new Rectangle(sx, y + 342, sw, 46);
         _backBtn = new UiButton(new Rectangle(40, 40, 150, 46), "< BACK");
     }
 
@@ -70,6 +72,13 @@ internal sealed class SettingsScene : IScene
                 _scenes.Play(Sfx.Click);
             }
 
+            if (_fullscreenToggle.Contains((int)_mouse.X, (int)_mouse.Y))
+            {
+                s.Fullscreen = !s.Fullscreen;
+                _scenes.SetFullscreen?.Invoke(s.Fullscreen);
+                _scenes.Play(Sfx.Click);
+            }
+
             if (_backBtn.Hit(_mouse))
             {
                 _scenes.Switch(_back);
@@ -102,6 +111,11 @@ internal sealed class SettingsScene : IScene
         r.FillRect(_introToggle.X, _introToggle.Y, _introToggle.Width, _introToggle.Height, introHover ? Palette.PanelHi : Palette.Panel);
         r.RectOutline(_introToggle.X, _introToggle.Y, _introToggle.Width, _introToggle.Height, 2, introHover ? Palette.Accent : Palette.GridLine);
         r.TextCentered("INTRO LOGO:  " + (s.ShowIntro ? "ON" : "OFF"), new Vector2(_introToggle.Center.X, _introToggle.Center.Y), 2.6f, s.ShowIntro ? Palette.Solved : Palette.TextDim);
+
+        bool fsHover = _fullscreenToggle.Contains((int)_mouse.X, (int)_mouse.Y);
+        r.FillRect(_fullscreenToggle.X, _fullscreenToggle.Y, _fullscreenToggle.Width, _fullscreenToggle.Height, fsHover ? Palette.PanelHi : Palette.Panel);
+        r.RectOutline(_fullscreenToggle.X, _fullscreenToggle.Y, _fullscreenToggle.Width, _fullscreenToggle.Height, 2, fsHover ? Palette.Accent : Palette.GridLine);
+        r.TextCentered("FULLSCREEN:  " + (s.Fullscreen ? "ON" : "OFF"), new Vector2(_fullscreenToggle.Center.X, _fullscreenToggle.Center.Y), 2.6f, s.Fullscreen ? Palette.Solved : Palette.TextDim);
 
         r.TextCentered("DRAG SLIDERS - CLICK TOGGLE - ESC TO SAVE & BACK", new Vector2(r.Width / 2f, r.Height - 50f), 2.4f, Palette.TextDim);
     }

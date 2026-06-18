@@ -12,6 +12,17 @@ internal sealed class InputState
     private MouseState _prevMouse;
     private MouseState _mouse;
     private string _typed = string.Empty;
+    private Rectangle _viewport = new(0, 0, 1280, 720);
+    private float _virtualW = 1280f;
+    private float _virtualH = 720f;
+
+    /// <summary>Maps raw window mouse coords into the virtual (letterboxed) screen space.</summary>
+    public void SetViewport(Rectangle dest, float virtualW, float virtualH)
+    {
+        _viewport = dest;
+        _virtualW = virtualW;
+        _virtualH = virtualH;
+    }
 
     /// <summary>Printable characters typed since the last frame (for text fields). Empty when none.</summary>
     public string Typed => _typed;
@@ -36,7 +47,15 @@ internal sealed class InputState
         _pendingText.Clear();
     }
 
-    public Vector2 Mouse => new(_mouse.X, _mouse.Y);
+    public Vector2 Mouse
+    {
+        get
+        {
+            float sx = _viewport.Width > 0 ? _virtualW / _viewport.Width : 1f;
+            float sy = _viewport.Height > 0 ? _virtualH / _viewport.Height : 1f;
+            return new Vector2((_mouse.X - _viewport.X) * sx, (_mouse.Y - _viewport.Y) * sy);
+        }
+    }
 
     public bool LeftClick => _mouse.LeftButton == ButtonState.Pressed && _prevMouse.LeftButton == ButtonState.Released;
 

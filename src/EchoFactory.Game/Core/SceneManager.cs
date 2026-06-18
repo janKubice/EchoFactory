@@ -25,6 +25,9 @@ internal sealed class SceneManager
 
     public required Action Quit { get; init; }
 
+    /// <summary>Applies borderless fullscreen on/off (provided by the host).</summary>
+    public Action<bool>? SetFullscreen { get; init; }
+
     public int ScreenW { get; set; }
 
     public int ScreenH { get; set; }

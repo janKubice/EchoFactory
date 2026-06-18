@@ -162,6 +162,19 @@ internal sealed class Renderer : IDisposable
         }
     }
 
+    /// <summary>Left-aligned text shrunk (never enlarged) so it fits within maxW on one line.</summary>
+    public void TextFitLeft(string text, Vector2 pos, float maxW, float maxPixel, Color color)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        float widthAtOne = (text.Length * (VectorFont.GlyphW + 1)) - 1f;
+        float pixel = MathF.Max(0.75f, MathF.Min(maxPixel, maxW / widthAtOne));
+        Text(text, pos, pixel, color);
+    }
+
     public void TextCentered(string text, Vector2 center, float pixel, Color color)
     {
         Vector2 size = Measure(text, pixel);

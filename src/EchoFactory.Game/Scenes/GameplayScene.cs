@@ -715,23 +715,53 @@ internal sealed class GameplayScene : IScene
         r.Ring(c, radius, MathF.Max(2f, s * 0.03f), Palette.Portal);
         r.TextCenteredFit("@", c - new Vector2(0, s * 0.12f), radius, radius * 0.7f, Palette.Portal);
 
-        // Time offset is the whole point of the portal — show it as t+N / t-N.
+        // Exit tick is T - offset, so a POSITIVE offset sends the item into the PAST.
         int off = config.TimeOffset;
-        string label = "t" + (off >= 0 ? "+" : "-") + Math.Abs(off).ToString(System.Globalization.CultureInfo.InvariantCulture);
-        r.TextCenteredFit(label, c + new Vector2(0, s * 0.22f), s * 0.6f, s * 0.2f, Palette.Item);
+        bool past = off > 0;
+        r.TextCenteredFit("Δ" + Math.Abs(off).ToString(System.Globalization.CultureInfo.InvariantCulture) + "t", c + new Vector2(0, s * 0.18f), s * 0.6f, s * 0.2f, Palette.Item);
+        r.TextCenteredFit(off == 0 ? "NOW" : (past ? "TO PAST" : "TO FUTURE"), c + new Vector2(0, s * 0.34f), s * 0.7f, s * 0.13f, past ? Palette.Sink : Palette.Generator);
 
         DrawInPorts(r, cell, Palette.Portal, config.Output);
         DrawOutArrow(r, cell, config.Output, Palette.Portal);
 
-        // Echo rings hint at the value duplicated across time; a comet rides them during playback.
-        r.Ring(c, radius + 4f, 1.5f, new Color(Palette.Portal.R, Palette.Portal.G, Palette.Portal.B, (byte)90));
+        // A looping time-arc cues that the item is sent back/forward in time (sweep dir = past/future).
+        DrawTimeArc(r, c, radius + 7f, past);
+
         if (_mode == PlayMode.Playback)
         {
-            float pulse = radius + 6f + (MathF.Sin(_playTime * 4f) * 3f);
+            float pulse = radius + 7f + (MathF.Sin(_playTime * 4f) * 3f);
             r.Ring(c, pulse, 2f, Palette.Portal);
-            float ang = _playTime * 5f;
-            Vector2 comet = c + (new Vector2(MathF.Cos(ang), MathF.Sin(ang)) * (radius + 6f));
+            float ang = _playTime * 5f * (past ? -1f : 1f);
+            Vector2 comet = c + (new Vector2(MathF.Cos(ang), MathF.Sin(ang)) * (radius + 7f));
             r.Disc(comet, MathF.Max(2f, s * 0.05f), Palette.Item);
+        }
+    }
+
+    /// <summary>A ~270-degree arc with an arrowhead around the portal; sweep direction shows past vs future.</summary>
+    private void DrawTimeArc(Renderer r, Vector2 c, float radius, bool past)
+    {
+        const int seg = 22;
+        float a0 = -MathF.PI * 0.5f;
+        float sweep = MathF.PI * 1.5f * (past ? -1f : 1f);
+        var col = new Color(Palette.Portal.R, Palette.Portal.G, Palette.Portal.B, (byte)130);
+        Vector2 prev = c + (new Vector2(MathF.Cos(a0), MathF.Sin(a0)) * radius);
+        Vector2 dir = Vector2.Zero;
+        for (int i = 1; i <= seg; i++)
+        {
+            float t = a0 + (sweep * (i / (float)seg));
+            Vector2 p = c + (new Vector2(MathF.Cos(t), MathF.Sin(t)) * radius);
+            r.Line(prev, p, 2f, col);
+            dir = p - prev;
+            prev = p;
+        }
+
+        if (dir.LengthSquared() > 0.001f)
+        {
+            dir.Normalize();
+            Vector2 perp = new(-dir.Y, dir.X);
+            float a = radius * 0.22f;
+            r.Line(prev, prev - (dir * a) + (perp * a), 2f, col);
+            r.Line(prev, prev - (dir * a) - (perp * a), 2f, col);
         }
     }
 
@@ -742,19 +772,18 @@ internal sealed class GameplayScene : IScene
         r.Text(name.ToUpperInvariant(), new Vector2(40, 18), 3.5f, Palette.Text);
         string mode = _mode == PlayMode.Build ? "BUILD" : "PLAYBACK";
         r.TextCentered("MODE " + mode, new Vector2(r.Width / 2f, 28), 3f, Palette.Accent);
-        if (_returnTo is not null)
-        {
-            r.Text("ESC = BACK TO EDITOR", new Vector2(r.Width / 2f + 130, 22), 2.1f, Palette.Sink);
-        }
-
         r.Text("NODES " + _editor.Count, new Vector2(r.Width - 330, 22), 3f, Palette.TextDim);
         new UiButton(_helpBtn, "? HELP").Draw(r, _mouse);
 
         // Objective strip: hint + start/goal
         r.FillRect(0, 56, r.Width, 48, Palette.Background);
-        if (!string.IsNullOrEmpty(_level.Description))
+        if (_returnTo is not null)
         {
-            r.Text(_level.Description.ToUpperInvariant(), new Vector2(40, 60), 2.2f, Palette.Accent);
+            r.Text("ESC = BACK TO EDITOR", new Vector2(40, 60), 2.2f, Palette.Sink);
+        }
+        else if (!string.IsNullOrEmpty(_level.Description))
+        {
+            r.TextFitLeft(_level.Description.ToUpperInvariant(), new Vector2(40, 60), r.Width - 80, 2.2f, Palette.Accent);
         }
 
         r.Text("START", new Vector2(40, 84), 2.2f, Palette.Generator);
@@ -919,7 +948,7 @@ internal sealed class GameplayScene : IScene
         NodeKind.Belt => "Moves items one cell per tick.",
         NodeKind.Math => n.Math!.Constant.HasValue ? "Transforms each value by a constant." : "Adds its two incoming values.",
         NodeKind.Splitter => "Alternates items between A and B.",
-        NodeKind.Portal => "Time machine: an item in at tick T leaves at T+offset (negative = past).",
+        NodeKind.Portal => "Time machine: item in at tick T leaves at T-offset (positive = into the past).",
         NodeKind.Filter => "Drops items that fail the test.",
         NodeKind.Router => "Match goes one way, the rest the other (never drops).",
         NodeKind.Accumulator => "Sums incoming values, releases on the condition.",

@@ -97,10 +97,22 @@ dotnet run --project src/EchoFactory.Game
 
 ### Distribuce (samostatný EXE bez nutnosti .NET)
 
+```bat
+REM Windows (cmd / PowerShell) — spusť z kořene repa:
+scripts\publish.cmd
+
+REM ...nebo přímo jeden příkaz (cokoli z win-x64 / linux-x64 / osx-x64 / osx-arm64):
+dotnet publish src\EchoFactory.Game\EchoFactory.Game.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o artifacts\win-x64
+```
+
 ```bash
-# Windows build (výchozí); jde i linux-x64 / osx-x64 / osx-arm64
+# macOS / Linux (bash):
 scripts/publish.sh win-x64
 ```
+
+> Pozn.: `scripts/publish.sh` je bash skript — v `cmd` nepoběží. Na Windows použij
+> `scripts\publish.cmd` nebo ten `dotnet publish` příkaz výše. Potřebuješ **.NET 8 SDK**
+> (ověř `dotnet --version`).
 
 Výsledek je `artifacts/win-x64/` — složka k zazipování a rozeslání: obsahuje
 single-file `EchoFactory.Game.exe`, nativní knihovny (SDL2, OpenAL) a **loose

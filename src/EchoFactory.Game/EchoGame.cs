@@ -7,6 +7,11 @@ namespace EchoFactory.Game;
 /// <summary>MonoGame host: owns the renderer, input and the active scene.</summary>
 public sealed class EchoGame : Microsoft.Xna.Framework.Game
 {
+    // Everything is drawn to a fixed virtual resolution, then letterboxed to the window/screen.
+    // Scene layouts stay resolution-independent and fullscreen never breaks input mapping.
+    private const int VirtualW = 1280;
+    private const int VirtualH = 720;
+
     private static string LeaderboardPath => Path.Combine(AppContext.BaseDirectory, "echofactory-leaderboard.json");
 
     private readonly GraphicsDeviceManager _graphics;
@@ -14,16 +19,19 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
     private readonly GameSettings _settings = SettingsStore.Load();
     private readonly Leaderboard _leaderboard = LeaderboardStore.Load(LeaderboardPath);
     private Renderer _renderer = null!;
+    private SpriteBatch _blit = null!;
+    private RenderTarget2D _target = null!;
     private AudioManager _audio = null!;
     private SceneManager? _scenes;
+    private Rectangle _viewport = new(0, 0, VirtualW, VirtualH);
     private string? _loadError;
 
     public EchoGame()
     {
         _graphics = new GraphicsDeviceManager(this)
         {
-            PreferredBackBufferWidth = 1280,
-            PreferredBackBufferHeight = 720,
+            PreferredBackBufferWidth = VirtualW,
+            PreferredBackBufferHeight = VirtualH,
         };
         IsMouseVisible = true;
         Window.AllowUserResizing = false;
@@ -34,6 +42,8 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
     protected override void LoadContent()
     {
         _renderer = new Renderer(GraphicsDevice);
+        _blit = new SpriteBatch(GraphicsDevice);
+        _target = new RenderTarget2D(GraphicsDevice, VirtualW, VirtualH);
         _audio = new AudioManager();
 
         try
@@ -46,8 +56,9 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
                 Audio = _audio,
                 Leaderboard = _leaderboard,
                 Quit = Exit,
-                ScreenW = GraphicsDevice.Viewport.Width,
-                ScreenH = GraphicsDevice.Viewport.Height,
+                SetFullscreen = ApplyFullscreen,
+                ScreenW = VirtualW,
+                ScreenH = VirtualH,
             };
             _scenes.Switch(_settings.ShowIntro ? new SplashScene(_scenes) : new MainMenuScene(_scenes));
         }
@@ -56,6 +67,7 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
             _loadError = e.Message;
         }
 
+        ApplyFullscreen(_settings.Fullscreen);
         base.LoadContent();
     }
 
@@ -72,6 +84,8 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
 
     protected override void Draw(GameTime gameTime)
     {
+        // 1) Render the game to the fixed virtual-resolution target.
+        GraphicsDevice.SetRenderTarget(_target);
         GraphicsDevice.Clear(Palette.Background);
 
         _renderer.Begin();
@@ -86,13 +100,54 @@ public sealed class EchoGame : Microsoft.Xna.Framework.Game
         }
 
         _renderer.End();
+
+        // 2) Letterbox-blit the target into the actual back buffer.
+        GraphicsDevice.SetRenderTarget(null);
+        GraphicsDevice.Clear(Color.Black);
+        _blit.Begin(samplerState: SamplerState.LinearClamp);
+        _blit.Draw(_target, _viewport, Color.White);
+        _blit.End();
+
         base.Draw(gameTime);
+    }
+
+    private void ApplyFullscreen(bool fullscreen)
+    {
+        _graphics.HardwareModeSwitch = false; // borderless windowed fullscreen
+        _graphics.IsFullScreen = fullscreen;
+        if (fullscreen)
+        {
+            DisplayMode dm = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode;
+            _graphics.PreferredBackBufferWidth = dm.Width;
+            _graphics.PreferredBackBufferHeight = dm.Height;
+        }
+        else
+        {
+            _graphics.PreferredBackBufferWidth = VirtualW;
+            _graphics.PreferredBackBufferHeight = VirtualH;
+        }
+
+        _graphics.ApplyChanges();
+        RecomputeViewport();
+    }
+
+    private void RecomputeViewport()
+    {
+        int bw = GraphicsDevice.PresentationParameters.BackBufferWidth;
+        int bh = GraphicsDevice.PresentationParameters.BackBufferHeight;
+        float scale = MathF.Min((float)bw / VirtualW, (float)bh / VirtualH);
+        int w = (int)(VirtualW * scale);
+        int h = (int)(VirtualH * scale);
+        _viewport = new Rectangle((bw - w) / 2, (bh - h) / 2, w, h);
+        _input.SetViewport(_viewport, VirtualW, VirtualH);
     }
 
     protected override void UnloadContent()
     {
         SettingsStore.Save(_settings);
         LeaderboardStore.Save(LeaderboardPath, _leaderboard);
+        _target?.Dispose();
+        _blit?.Dispose();
         _renderer?.Dispose();
         _audio?.Dispose();
         base.UnloadContent();
