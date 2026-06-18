@@ -150,8 +150,9 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
    pro hodnoty — víceciferné i záporné (`+/-`, ADD, DEL, CLR). Klávesové zkratky
    zůstávají. **Neověřené lokálně — proklikat.** Zbývá: editace **inventáře**
    (povolené uzly + limity) a `description`/`order`/`par` přímo v editoru.
-3. **Kampaně + scroll:** pole `campaign` v levelu + editoru; výběr Play → kampaň →
-   levely; neomezeně (scroll kolečkem).
+3. **Kampaně + scroll:** 🟡 výběr levelů teď **scrolluje kolečkem** (viewport
+   culling v `LevelSelectScene`) → neomezený počet levelů. **Zbývá:** seskupení
+   do kampaní (pole `campaign` v levelu + editoru, výběr Play → kampaň → levely).
 4. **Smyčky (design ⭐):** ✅ HOTOVO router (`RouterNode`) + akumulátor
    (`AccumulatorNode`) + demo levely `lvl_loop_counter_01`, `lvl_tally_01` a
    paleta tools 7/8. Hráč 2026-06-18 zvolil „obojí". Portál teď ukazuje **popisek
