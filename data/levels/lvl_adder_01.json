@@ -3,6 +3,7 @@
   "id": "lvl_adder_01",
   "name": "Sum It Up",
   "order": 6,
+  "campaign": "Basics",
   "description": "Feed both inputs into an adder (tool 2) to make their sum.",
   "grid": { "width": 5, "height": 3 },
   "max_ticks": 12,

@@ -3,6 +3,7 @@
   "id": "tut_02_turn",
   "name": "Around the Corner",
   "order": 1,
+  "campaign": "Basics",
   "description": "Belts can turn. Press R to rotate, then route the value to the sink.",
   "grid": { "width": 3, "height": 3 },
   "max_ticks": 15,

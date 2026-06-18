@@ -56,6 +56,9 @@ public sealed class LevelDefinition
     /// <summary>Campaign ordering (lower = earlier). Unordered levels sort last.</summary>
     public int Order { get; init; } = 1000;
 
+    /// <summary>Campaign this level belongs to (groups the level select). Blank = uncategorised.</summary>
+    public string Campaign { get; init; } = "";
+
     public required GridSize Grid { get; init; }
 
     public required int MaxTicks { get; init; }

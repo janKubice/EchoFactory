@@ -3,6 +3,7 @@
   "id": "lvl_sort_01",
   "name": "Every Other",
   "order": 4,
+  "campaign": "Basics",
   "description": "Split four values alternately into the two sinks.",
   "grid": { "width": 3, "height": 3 },
   "max_ticks": 15,

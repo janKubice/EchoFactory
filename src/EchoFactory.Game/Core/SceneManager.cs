@@ -29,6 +29,9 @@ internal sealed class SceneManager
 
     public int ScreenH { get; set; }
 
+    /// <summary>Shared animated backdrop for menu scenes (continuous across navigation).</summary>
+    public MenuBackground Background { get; } = new();
+
     public void Switch(IScene next) => _current = next;
 
     /// <summary>Play a sound at the current effective SFX volume.</summary>

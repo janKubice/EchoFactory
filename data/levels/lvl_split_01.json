@@ -3,6 +3,7 @@
   "id": "lvl_split_01",
   "name": "Fork in the Line",
   "order": 3,
+  "campaign": "Basics",
   "description": "A splitter sends items to its two outputs in turn (tool 4).",
   "grid": { "width": 3, "height": 3 },
   "max_ticks": 12,

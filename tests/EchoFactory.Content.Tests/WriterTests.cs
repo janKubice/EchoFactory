@@ -55,6 +55,7 @@ public class WriterTests
         var level = new LevelDefinition
         {
             Id = "lvl_rt",
+            Campaign = "Logic",
             Grid = new GridSize(6, 3),
             MaxTicks = 20,
             MaxTemporalPasses = 5,
@@ -75,6 +76,7 @@ public class WriterTests
         string json2 = LevelWriter.Write(back);
 
         Assert.Equal(json1, json2);
+        Assert.Equal("Logic", back.Campaign);
         Assert.True(back.StrictTiming);
         Assert.Equal(7, back.Par!.Ticks);
         Assert.True(back.Inventory!.Allows("node_belt"));

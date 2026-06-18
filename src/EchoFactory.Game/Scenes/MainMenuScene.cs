@@ -30,11 +30,12 @@ internal sealed class MainMenuScene : IScene
     public void Update(float dt, InputState input)
     {
         _mouse = input.Mouse;
+        _scenes.Background.Update(dt);
 
         if ((input.LeftClick && _play.Hit(_mouse)) || input.KeyPressed(Keys.Enter))
         {
             _scenes.Play(Sfx.Click);
-            _scenes.Switch(new LevelSelectScene(_scenes));
+            _scenes.Switch(new CampaignSelectScene(_scenes));
         }
         else if (input.LeftClick && _editor.Hit(_mouse))
         {
@@ -54,6 +55,7 @@ internal sealed class MainMenuScene : IScene
 
     public void Draw(Renderer r)
     {
+        _scenes.Background.Draw(r);
         r.TextCentered("ECHOFACTORY", new Vector2(r.Width / 2f, (r.Height / 2f) - 150), 11f, Palette.Accent);
         r.TextCentered("TIME-LOOP FACTORY PUZZLES", new Vector2(r.Width / 2f, (r.Height / 2f) - 96), 3f, Palette.TextDim);
         _play.Draw(r, _mouse);

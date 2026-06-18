@@ -162,7 +162,7 @@ internal sealed class GameplayScene : IScene
             }
             else
             {
-                _scenes.Switch(new LevelSelectScene(_scenes));
+                _scenes.Switch(new CampaignSelectScene(_scenes));
             }
 
             return;
@@ -375,7 +375,7 @@ internal sealed class GameplayScene : IScene
 
             if (_levelsBtn.Contains(Point(_mouse)))
             {
-                _scenes.Switch(new LevelSelectScene(_scenes));
+                _scenes.Switch(new CampaignSelectScene(_scenes));
                 return;
             }
 

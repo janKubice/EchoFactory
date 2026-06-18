@@ -7,6 +7,7 @@ namespace EchoFactory.Game;
 internal sealed class LevelSelectScene : IScene
 {
     private readonly SceneManager _scenes;
+    private readonly string? _campaign;
     private readonly List<(UiButton Button, string LevelId)> _levels = [];
     private readonly UiButton _back;
     private readonly int _viewTop;
@@ -15,9 +16,10 @@ internal sealed class LevelSelectScene : IScene
     private float _scroll;
     private Vector2 _mouse;
 
-    public LevelSelectScene(SceneManager scenes)
+    public LevelSelectScene(SceneManager scenes, string? campaign = null)
     {
         _scenes = scenes;
+        _campaign = campaign;
         scenes.Catalog.Reload(); // pick up any editor-saved levels
 
         var items = new List<(string Id, string Name, int Order)>();
@@ -26,11 +28,19 @@ internal sealed class LevelSelectScene : IScene
             try
             {
                 var level = scenes.Catalog.LoadLevel(id);
+                if (campaign is not null && !CampaignOf(level).Equals(campaign, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
                 items.Add((id, string.IsNullOrEmpty(level.Name) ? id : level.Name, level.Order));
             }
             catch (ContentException)
             {
-                items.Add((id, id, 1000));
+                if (campaign is null)
+                {
+                    items.Add((id, id, 1000));
+                }
             }
         }
 
@@ -66,6 +76,7 @@ internal sealed class LevelSelectScene : IScene
     public void Update(float dt, InputState input)
     {
         _mouse = input.Mouse;
+        _scenes.Background.Update(dt);
 
         if (_maxScroll > 0 && input.ScrollDelta != 0)
         {
@@ -74,7 +85,7 @@ internal sealed class LevelSelectScene : IScene
 
         if ((input.LeftClick && _back.Hit(_mouse)) || input.KeyPressed(Keys.Escape))
         {
-            _scenes.Switch(new MainMenuScene(_scenes));
+            _scenes.Switch(_campaign is null ? new MainMenuScene(_scenes) : new CampaignSelectScene(_scenes));
             return;
         }
 
@@ -95,7 +106,8 @@ internal sealed class LevelSelectScene : IScene
 
     public void Draw(Renderer r)
     {
-        r.TextCentered("SELECT LEVEL", new Vector2(r.Width / 2f, 80f), 6f, Palette.Text);
+        _scenes.Background.Draw(r);
+        r.TextCentered((_campaign ?? "SELECT LEVEL").ToUpperInvariant(), new Vector2(r.Width / 2f, 80f), 6f, Palette.Text);
         _back.Draw(r, _mouse);
 
         foreach (var (button, levelId) in _levels)
@@ -123,4 +135,7 @@ internal sealed class LevelSelectScene : IScene
     private Rectangle Shift(Rectangle rect) => new(rect.X, rect.Y - (int)_scroll, rect.Width, rect.Height);
 
     private static Point Point(Vector2 v) => new((int)v.X, (int)v.Y);
+
+    internal static string CampaignOf(EchoFactory.Core.LevelDefinition level) =>
+        string.IsNullOrWhiteSpace(level.Campaign) ? "Other" : level.Campaign;
 }

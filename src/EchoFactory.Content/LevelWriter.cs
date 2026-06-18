@@ -42,6 +42,7 @@ public static class LevelWriter
             Name = string.IsNullOrEmpty(level.Name) ? null : level.Name,
             Description = string.IsNullOrEmpty(level.Description) ? null : level.Description,
             Order = level.Order,
+            Campaign = string.IsNullOrEmpty(level.Campaign) ? null : level.Campaign,
             Grid = new GridDto { Width = level.Grid.Width, Height = level.Grid.Height },
             MaxTicks = level.MaxTicks,
             MaxTemporalPasses = level.MaxTemporalPasses,

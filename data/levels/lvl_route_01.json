@@ -3,6 +3,7 @@
   "id": "lvl_route_01",
   "name": "Two Ways",
   "order": 12,
+  "campaign": "Logic",
   "description": "A router (tool 7) sends each value one way if it matches the condition, the other way if not. Send <3 right, >=3 down. It never destroys items.",
   "grid": { "width": 3, "height": 3 },
   "max_ticks": 12,

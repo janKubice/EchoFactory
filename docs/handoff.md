@@ -26,7 +26,8 @@ Plně **data-driven** (JSON) a postavené na **deterministickém headless enginu
   cesta/jméno/zap-vyp v nastavení) + **měnitelná ikonka .exe** (`branding/app.ico`).
   Vizuální TODO: vstupní porty math/splitteru + popisek/kometa portálu hotové.
   **Editor levelů je teď klikací** (paleta, číselníky, on-screen klávesnice pro
-  hodnoty, textové pole jméno). **61 testů**, vše builduje. ~29 commitů.
+  hodnoty, textové pole jméno). **Kampaně** (Play → hub → levely) + **animované
+  pozadí menu**. **61 testů**, vše builduje. ~31 commitů.
 
 ## 2. Prostředí, build, test, push (DŮLEŽITÉ)
 
@@ -150,9 +151,11 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
    pro hodnoty — víceciferné i záporné (`+/-`, ADD, DEL, CLR). Klávesové zkratky
    zůstávají. **Neověřené lokálně — proklikat.** Zbývá: editace **inventáře**
    (povolené uzly + limity) a `description`/`order`/`par` přímo v editoru.
-3. **Kampaně + scroll:** 🟡 výběr levelů teď **scrolluje kolečkem** (viewport
-   culling v `LevelSelectScene`) → neomezený počet levelů. **Zbývá:** seskupení
-   do kampaní (pole `campaign` v levelu + editoru, výběr Play → kampaň → levely).
+3. ✅ HOTOVO **Kampaně + scroll:** pole `campaign` v levelu (loader/writer/DTO),
+   tok **Play → `CampaignSelectScene` (hub s progressem) → `LevelSelectScene`
+   filtrovaný kampaní**. 15 levelů rozděleno do Basics / Logic / Time & Loops
+   (řazení kampaní dle min `order`). Výběr levelů **scrolluje kolečkem**. **Zbývá:**
+   nastavení kampaně v editoru (custom levely teď padají do „Other").
 4. **Smyčky (design ⭐):** ✅ HOTOVO router (`RouterNode`) + akumulátor
    (`AccumulatorNode`) + demo levely `lvl_loop_counter_01`, `lvl_tally_01` a
    paleta tools 7/8. Hráč 2026-06-18 zvolil „obojí". Portál teď ukazuje **popisek
@@ -160,9 +163,10 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
    **Zbývá:** těžší kombinované smyčkové levely (router+akumulátor) a případně
    dedikovaný tutoriálový level portálu. Nový gentle level `lvl_route_01` učí
    router (2 výstupy). GUI tools 7/8 + panel + overlay zatím **neověřené lokálně**.
-5. **Vizuál:** ✅ vstupní porty + popisek portálu hotové; **zbývá zatočené pásy**
-   (oblouk dle vstup/výstup), hezčí tlačítka (mřížka/ikony), **animované pozadí
-   menu** (běžící „nesmyslná" továrna). Intro splash s logem viz §Branding níže.
+5. **Vizuál:** ✅ vstupní porty + popisek portálu + **animované pozadí menu**
+   (`MenuBackground` — plovoucí pásy/chevrony/items za UI menu scén) hotové;
+   **zbývá zatočené pásy** (oblouk dle vstup/výstup), hezčí tlačítka (mřížka/
+   ikony). Intro splash s logem viz §Branding níže.
 6. **Build/nastavení:** 🟡 **EXE publish HOTOVO** — `scripts/publish.sh <rid>`
    dělá self-contained single-file build (ověřeno win-x64: exe + SDL/OpenAL +
    loose `data/`+`branding/`), návod v README. **Zbývá:** nastavení
@@ -181,6 +185,8 @@ Porušení = P0 (rozbije časové smyčky i žebříčky).
 | JSON formát / parsování | `Content/LevelLoader.cs`, `SolutionLoader.cs`, `Internal/Dtos.cs`, `Internal/JsonConfig.cs` |
 | ukládání levelu/řešení | `Content/LevelWriter.cs`, `SolutionWriter.cs` |
 | herní obrazovku / UX | `Game/Scenes/*` (hlavně `GameplayScene.cs`, `LevelEditorScene.cs`) |
+| výběr levelů / kampaně | `Game/Scenes/CampaignSelectScene.cs` + `LevelSelectScene.cs` (filtr `campaign`) |
+| animované pozadí menu | `Game/Rendering/MenuBackground.cs` (sdílená instance v `SceneManager.Background`) |
 | textový vstup (pole) | `InputState.Typed` (plněno z `Window.TextInput` v `EchoGame`) |
 | kreslení / font | `Game/Rendering/Renderer.cs`, `VectorFont.cs`, `Palette.cs` |
 | žebříčky / anti-cheat | `Content/Leaderboard.cs`, `SubmissionVerifier.cs` |

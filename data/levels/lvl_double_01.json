@@ -3,6 +3,7 @@
   "id": "lvl_double_01",
   "name": "Triple Threat",
   "order": 5,
+  "campaign": "Basics",
   "description": "A math node with a constant multiplies each value (use +/- to set x3).",
   "grid": { "width": 5, "height": 3 },
   "max_ticks": 12,

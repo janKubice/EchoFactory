@@ -35,6 +35,7 @@ internal sealed class SettingsScene : IScene
     public void Update(float dt, InputState input)
     {
         _mouse = input.Mouse;
+        _scenes.Background.Update(dt);
         GameSettings s = _scenes.Settings;
 
         if (input.LeftDown)
@@ -83,6 +84,7 @@ internal sealed class SettingsScene : IScene
 
     public void Draw(Renderer r)
     {
+        _scenes.Background.Draw(r);
         GameSettings s = _scenes.Settings;
         r.TextCentered("SETTINGS", new Vector2(r.Width / 2f, 110f), 6f, Palette.Text);
         _backBtn.Draw(r, _mouse);

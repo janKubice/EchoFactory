@@ -140,8 +140,8 @@ teď implementované — **přečíst pozorně**.
 2. 🟢 **Editor → klikací UI** — HOTOVO z větší části: paleta, číselníky (grid/
    ticks), on-screen klávesnice hodnot (čísla > 9 i záporné), textové jméno,
    TEST/SAVE. Zbývá: editace **inventáře** + description/order/par.
-3. **Kampaně + scroll** ve výběru (E) — vč. pole `campaign` v levelu a editoru.
-   ← **další na řadě**
+3. 🟢 **Kampaně + scroll** ve výběru (E) — HOTOVO: pole `campaign`, Play → hub
+   `CampaignSelectScene` → filtrovaný výběr, scroll kolečkem. Zbývá kampaň v editoru.
 4. **Router/akumulátor + smyčkové levely** (H) — po dohodě s hráčem.
 5. **Zatočené pásy + hezčí tlačítka + animované pozadí menu** (A, F).
 6. **EXE publish + nastavení rozlišení** (B, C).

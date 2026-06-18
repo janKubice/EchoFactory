@@ -87,6 +87,7 @@ public static class LevelLoader
             Name = dto.Name ?? string.Empty,
             Description = dto.Description ?? string.Empty,
             Order = dto.Order,
+            Campaign = dto.Campaign ?? string.Empty,
             Grid = new GridSize(dto.Grid.Width, dto.Grid.Height),
             MaxTicks = dto.MaxTicks,
             MaxTemporalPasses = dto.MaxTemporalPasses,
