@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "node_portal",
   "name": "Time Portal",
-  "description": "Sends an item backward or forward in time by its offset, so a copy can arrive before it was made. The simulation solves the loop to a stable point; impossible loops are a temporal paradox.",
+  "description": "A time machine for items. An item that enters at tick T leaves the output at tick T + offset. A NEGATIVE offset sends it into the PAST, so its copy can reach the goal BEFORE the original was even sent - that is a time loop. The simulation replays the loop until it is consistent; loops that can never agree are a temporal paradox.",
   "type": "portal",
   "category": "Temporal",
   "tick_cost": 1,

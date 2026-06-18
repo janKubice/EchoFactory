@@ -41,6 +41,7 @@ internal sealed class GameplayScene : IScene
     private readonly SceneManager _scenes;
     private readonly string _levelId;
     private readonly LevelDefinition _level;
+    private readonly IScene? _returnTo;
     private readonly BuildEditor _editor;
     private readonly GridView _grid;
     private readonly Rectangle _timeline;
@@ -81,20 +82,22 @@ internal sealed class GameplayScene : IScene
     {
     }
 
-    public GameplayScene(SceneManager scenes, string levelId, LevelDefinition level)
+    public GameplayScene(SceneManager scenes, string levelId, LevelDefinition level, IScene? returnTo = null)
     {
         _scenes = scenes;
         _levelId = levelId;
         _level = level;
+        _returnTo = returnTo;
         _editor = new BuildEditor(_level);
 
         int w = scenes.ScreenW;
         int h = scenes.ScreenH;
-        var playArea = new Rectangle(40, 108, w - 80, h - 108 - 150);
+        // Reserve a right-hand strip for the config panel so it never overlaps the grid.
+        _panelRect = new Rectangle(w - 296, 120, 256, 332);
+        var playArea = new Rectangle(40, 108, _panelRect.X - 40 - 16, h - 108 - 150);
         _grid = new GridView(_level.Grid, playArea);
         _timeline = new Rectangle(40, h - 64, w - 280, 18);
         _compileBtn = new Rectangle(w - 220, h - 132, 180, 48);
-        _panelRect = new Rectangle(w - 296, 120, 256, 332);
         _helpBtn = new Rectangle(w - 150, 12, 110, 32);
 
         const int cardW = 580;
@@ -162,7 +165,7 @@ internal sealed class GameplayScene : IScene
             }
             else
             {
-                _scenes.Switch(new CampaignSelectScene(_scenes));
+                _scenes.Switch(_returnTo ?? new CampaignSelectScene(_scenes));
             }
 
             return;
@@ -375,7 +378,7 @@ internal sealed class GameplayScene : IScene
 
             if (_levelsBtn.Contains(Point(_mouse)))
             {
-                _scenes.Switch(new CampaignSelectScene(_scenes));
+                _scenes.Switch(_returnTo ?? new CampaignSelectScene(_scenes));
                 return;
             }
 
@@ -734,11 +737,16 @@ internal sealed class GameplayScene : IScene
 
     private void DrawTopBar(Renderer r)
     {
-        string name = string.IsNullOrEmpty(_level.Name) ? _levelId : _level.Name;
+        string name = _returnTo is not null ? "EDITOR TEST" : (string.IsNullOrEmpty(_level.Name) ? _levelId : _level.Name);
         r.FillRect(0, 0, r.Width, 56, Palette.Panel);
         r.Text(name.ToUpperInvariant(), new Vector2(40, 18), 3.5f, Palette.Text);
         string mode = _mode == PlayMode.Build ? "BUILD" : "PLAYBACK";
         r.TextCentered("MODE " + mode, new Vector2(r.Width / 2f, 28), 3f, Palette.Accent);
+        if (_returnTo is not null)
+        {
+            r.Text("ESC = BACK TO EDITOR", new Vector2(r.Width / 2f + 130, 22), 2.1f, Palette.Sink);
+        }
+
         r.Text("NODES " + _editor.Count, new Vector2(r.Width - 330, 22), 3f, Palette.TextDim);
         new UiButton(_helpBtn, "? HELP").Draw(r, _mouse);
 
@@ -897,13 +905,26 @@ internal sealed class GameplayScene : IScene
 
         Color col = ToolColor(ToolOf(node));
         r.Text(NodeTitle(node), new Vector2(_panelRect.X + 12, _panelRect.Y + 12), 2.6f, col);
-        r.TextCenteredFit(NodeSummary(node), new Vector2(_panelRect.Center.X, _panelRect.Y + 52), _panelRect.Width - 20, 22, Palette.Text);
+        r.TextCenteredFit(NodeSummary(node), new Vector2(_panelRect.Center.X, _panelRect.Y + 48), _panelRect.Width - 20, 18, Palette.Text);
+        r.TextCenteredFit(KindHelp(node), new Vector2(_panelRect.Center.X, _panelRect.Y + 66), _panelRect.Width - 18, 12, Palette.TextDim);
 
         foreach (var ctrl in PanelControls(node, sel))
         {
             new UiButton(ctrl.Rect, ctrl.Label).Draw(r, _mouse);
         }
     }
+
+    private static string KindHelp(PlacedNode n) => n.Kind switch
+    {
+        NodeKind.Belt => "Moves items one cell per tick.",
+        NodeKind.Math => n.Math!.Constant.HasValue ? "Transforms each value by a constant." : "Adds its two incoming values.",
+        NodeKind.Splitter => "Alternates items between A and B.",
+        NodeKind.Portal => "Time machine: an item in at tick T leaves at T+offset (negative = past).",
+        NodeKind.Filter => "Drops items that fail the test.",
+        NodeKind.Router => "Match goes one way, the rest the other (never drops).",
+        NodeKind.Accumulator => "Sums incoming values, releases on the condition.",
+        _ => string.Empty,
+    };
 
     private static string NodeTitle(PlacedNode n) => n.Kind switch
     {
@@ -968,10 +989,10 @@ internal sealed class GameplayScene : IScene
         r.Text("NODES IN THIS LEVEL", new Vector2(panel.X + 24, panel.Y + 120), 2.3f, Palette.Math);
 
         var defs = CodexDefs();
-        int top = panel.Y + 148;
-        int avail = (panel.Bottom - 20) - top;
-        int rowH = Math.Clamp(defs.Count == 0 ? avail : avail / defs.Count, 30, 70);
-        float descLeft = panel.X + 74;
+        int top = panel.Y + 150;
+        int avail = (panel.Bottom - 18) - top;
+        int rowH = Math.Clamp(defs.Count == 0 ? avail : avail / defs.Count, 54, 80);
+        float descLeft = panel.X + 70;
         float descRight = panel.Right - 28;
         for (int i = 0; i < defs.Count; i++)
         {
@@ -979,15 +1000,16 @@ internal sealed class GameplayScene : IScene
             int y = top + (i * rowH);
             Color col = NodeDefColor(d.Kind);
 
-            var chip = new Rectangle(panel.X + 24, y + 4, 32, 32);
+            var chip = new Rectangle(panel.X + 24, y + 6, 30, 30);
             r.FillRect(chip.X, chip.Y, chip.Width, chip.Height, Palette.PanelHi);
             r.RectOutline(chip.X, chip.Y, chip.Width, chip.Height, 2, col);
-            r.TextCenteredFit(d.Visual.Icon, new Vector2(chip.Center.X, chip.Center.Y), 22, 22, col);
+            r.TextCenteredFit(d.Visual.Icon, new Vector2(chip.Center.X, chip.Center.Y), 20, 20, col);
 
-            r.Text(d.Name.ToUpperInvariant(), new Vector2(descLeft, y + 4), 2.1f, col);
+            // Title and description on clearly separated lines (bounded heights → no overlap).
+            r.Text(d.Name.ToUpperInvariant(), new Vector2(descLeft, y + 8), 2.0f, col);
             if (!string.IsNullOrEmpty(d.Description))
             {
-                r.TextCenteredFit(d.Description, new Vector2((descLeft + descRight) / 2f, y + 24), descRight - descLeft, MathF.Max(11, rowH * 0.34f), Palette.TextDim);
+                r.TextCenteredFit(d.Description, new Vector2((descLeft + descRight) / 2f, y + 36), descRight - descLeft, 13, Palette.TextDim);
             }
         }
     }

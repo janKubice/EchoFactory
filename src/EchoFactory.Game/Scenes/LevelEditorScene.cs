@@ -378,7 +378,7 @@ internal sealed class LevelEditorScene : IScene
             return;
         }
 
-        _scenes.Switch(new GameplayScene(_scenes, "editor-test", BuildLevel("editor_test")));
+        _scenes.Switch(new GameplayScene(_scenes, "editor-test", BuildLevel("editor_test"), this));
     }
 
     private void Save()

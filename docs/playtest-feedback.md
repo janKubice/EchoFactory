@@ -11,6 +11,21 @@ backlog. Toto je **živý seznam úkolů** pro frontend/UX a design. Inženýrsk
 
 **Stav:** 🔴 todo · 🟡 existuje, ale špatné/neúplné · 🟢 hotovo
 
+## Playtest 2026-06-18 (hráč, build s panelem/kampaněmi)
+1. 🟡 **Config panel uzlu občas překrývá mapu.** Provizorně vyřešeno: grid teď
+   **rezervuje pravý pruh** pro panel (nepřekrývá se). Dlouhodobě: **fullscreen**
+   + volitelně **pan/grab mapy** (kamera-offset v `GridView`). → viz bod 1 níže.
+2. 🟢 **Help overlay měl překrývající se texty.** Opraveno: název a popis uzlu
+   jsou teď na oddělených řádcích s ohraničenou výškou (`DrawHelpOverlay`).
+3. 🟢 **Z editoru po TEST nešlo zpět do build/editoru.** Opraveno: `GameplayScene`
+   bere `returnTo`; ESC (i tlačítko) se vrací do editoru, nahoře hint
+   „ESC = BACK TO EDITOR".
+4. 🟢 **Portál neměl nápovědu.** Klik na uzel teď v panelu ukáže krátký popis
+   (`KindHelp`); portál má i `t+N` na gridu a heslo v kodexu (H).
+5. 🟡 **Portál je pořád nepochopitelný.** Přepsán popis (node + level
+   `lvl_loop_01`) na konkrétní „in@T → out@T+offset, záporný = minulost = smyčka".
+   Zbývá: **vizualizace dráhy/echa** na gridu + možná dedikovaný tutoriál portálu.
+
 ---
 
 ## A. Hlavní menu
